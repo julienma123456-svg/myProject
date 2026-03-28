@@ -1,0 +1,286 @@
+C51 COMPILER V9.60.0.0   MEASURE                                                           03/26/2026 23:09:13 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE MEASURE
+OBJECT MODULE PLACED IN .\Obj\measure.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE Service\measure.c LARGE OPTIMIZE(8,SPEED) BROWSE INCDIR(.\App;.\Drive;.\
+                    -Service) DEBUG OBJECTEXTEND PRINT(.\List\measure.lst) TABS(2) OBJECT(.\Obj\measure.obj)
+
+line level    source
+
+   1          #include "measure.h"
+   2          
+   3          static unsigned char OutPowerFreq = 90;
+   4          static unsigned int tickCount = 0;
+   5          
+   6          static unsigned char GetInPowerAdjInx(void);
+   7          
+   8          //ADC通道映射表
+   9          static unsigned char ADC_ChIndex[Analog_NUM] = 
+  10          {
+  11          ADC0,
+  12          ADC1,
+  13          ADC2,
+  14          //ADC3,
+  15          ADC4,
+  16          };
+  17          
+  18          //转换倍数表
+  19          static float VolToAnalogCoeff[Analog_NUM] = 
+  20          {
+  21          VOL_AI_50V,
+  22          VOL_AI_INP,
+  23          VOL_AI_REP,
+  24          VOL_AI_2A,
+  25          VOL_AI_17A,
+  26          };
+  27          static MeasureStructType MeasureStruct;
+  28          
+  29          //结构体初始化
+  30          void MeasureInit(void)
+  31          {
+  32   1        char i = 0;
+  33   1        MeasureStruct.TempAlarmFlag = 0;
+  34   1        //MeasureStruct.OutDAC_EnFlag = 0;
+  35   1      
+  36   1        for(i = 0;i < Analog_NUM;i++)
+  37   1        {
+  38   2          MeasureStruct.AnalogVal[i] = 0;   
+  39   2        }
+  40   1      }
+  41          
+  42          /****************采集列表***************************/
+  43          //1.50V采集：   ADC0采集结果
+  44          //2.入射功率采集：ADC1采集结果
+  45          //3.反射功率采集：ADC2采集结果
+  46          //4.2A电流采集：  ADC3采集结果
+  47          //5.17A电流采集： ADC4采集结果
+  48          //6.温度告警采集：TALARM IO口采集(低电平告警)
+  49          //7.DAC输出使能采集：PTT IO口采集(低电平有效)
+  50          //8.源电压异常告警: 50V源电压小于40V
+  51          //9.末级功放电流告警：17A电流小于300mA
+  52          //10.末前级功放电流告警：2A电流小于100mA
+  53          //11.驻波过大告警：入射功率 <= (反射功率 * 10)
+  54          
+C51 COMPILER V9.60.0.0   MEASURE                                                           03/26/2026 23:09:13 PAGE 2   
+
+  55          //采集所有值
+  56          static void MeasureAllVal(void)
+  57          {
+  58   1        char i = 0;
+  59   1        char err = 0;
+  60   1        char adcInx = 0;
+  61   1        char adjInx = 0;
+  62   1        unsigned int val = 0;
+  63   1        float adcVol = 0.0f;
+  64   1        float coeff = 0.0f;
+  65   1        //DAC输出使能脚采集
+  66   1      //  if(GPIO_GetIn(enumPTT) == 0)
+  67   1      //    MeasureStruct.OutDAC_EnFlag = 1;
+  68   1      //  else
+  69   1      //    MeasureStruct.OutDAC_EnFlag = 0;
+  70   1        
+  71   1        //温度告警脚采集                    
+  72   1        if(GPIO_GetIn(enumALARM_T) == 0)
+  73   1          MeasureStruct.TempAlarmFlag = 1;
+  74   1        else
+  75   1          MeasureStruct.TempAlarmFlag = 0;
+  76   1          
+  77   1        for(i = 0;i < Analog_NUM;i++)
+  78   1        {
+  79   2          adcInx = ADC_ChIndex[i];
+  80   2          coeff = VolToAnalogCoeff[i];
+  81   2          val = ADC_GetResult(adcInx);
+  82   2          //adcVol = (float)val / ADC_MAX_VAL * ADC_REF_VOL;
+  83   2          adcVol = (float)val / ADC_MAX_VAL;
+  84   2          MeasureStruct.AD_Val[i] = val; 
+  85   2      
+  86   2          //入射功率要校准
+  87   2          if(i == Analog_InPower)
+  88   2          {
+  89   3            float temp = 0;
+  90   3            adjInx = GetInPowerAdjInx();
+  91   3            temp = GetAdjustResult(enumInputPower + adjInx,val,&err);
+  92   3            if(!err)
+  93   3            {
+  94   4              MeasureStruct.AnalogVal[i] = temp / 100;
+  95   4            }
+  96   3            else
+  97   3            {
+  98   4              MeasureStruct.AnalogVal[i] = adcVol * coeff;
+  99   4            }
+ 100   3          }
+ 101   2          //反射功率要校准
+ 102   2          else if(i == Analog_RefPower)
+ 103   2          {
+ 104   3            float temp = 0;
+ 105   3            temp = GetAdjustResult(enumRefPower,val,&err);
+ 106   3            if(!err)
+ 107   3            {
+ 108   4              MeasureStruct.AnalogVal[i] = temp / 100;
+ 109   4            }
+ 110   3            else
+ 111   3            {
+ 112   4              MeasureStruct.AnalogVal[i] = adcVol * coeff;
+ 113   4            }
+ 114   3          }
+ 115   2          else
+ 116   2          {
+C51 COMPILER V9.60.0.0   MEASURE                                                           03/26/2026 23:09:13 PAGE 3   
+
+ 117   3            MeasureStruct.AnalogVal[i] = adcVol * coeff;
+ 118   3          }
+ 119   2        }
+ 120   1        
+ 121   1        //源电压异常告警
+ 122   1        if(MeasureStruct.AnalogVal[Analog_50V] < 40)
+ 123   1          MeasureStruct.VolAlarmFlag = 1;
+ 124   1        else
+ 125   1          MeasureStruct.VolAlarmFlag = 0; 
+ 126   1          
+ 127   1        //末级功放电流告警
+ 128   1        if(MeasureStruct.AnalogVal[Analog_17A] < 0.3f)
+ 129   1          MeasureStruct.Curr17AlarmFlag = 1;
+ 130   1        else
+ 131   1          MeasureStruct.Curr17AlarmFlag = 0;  
+ 132   1          
+ 133   1        //末前级功放电流告警
+ 134   1        if(MeasureStruct.AnalogVal[Analog_2A] < 0.1f)
+ 135   1          MeasureStruct.Curr2AlarmFlag = 1;
+ 136   1        else
+ 137   1          MeasureStruct.Curr2AlarmFlag = 0;
+ 138   1          
+ 139   1        //驻波过大告警
+ 140   1        if(MeasureStruct.AnalogVal[Analog_InPower] < 
+ 141   1                  MeasureStruct.AnalogVal[Analog_RefPower] * 10)
+ 142   1          MeasureStruct.OverWaveAlarmFlag = 1;
+ 143   1        else
+ 144   1          MeasureStruct.OverWaveAlarmFlag = 0;              
+ 145   1      }
+ 146          
+ 147          //采集功能tick(1ms调用一次)
+ 148          void MeasureTick(void)
+ 149          {
+ 150   1        tickCount++;
+ 151   1      }
+ 152          
+ 153          //main函数调用的服务函数
+ 154          void MeasureTask(void)
+ 155          {
+ 156   1        if(tickCount % REFRESH_TIME_MS == 0)
+ 157   1        {
+ 158   2          MeasureAllVal();
+ 159   2        }
+ 160   1      
+ 161   1        if(tickCount % 1000 == 0)
+ 162   1        {
+ 163   2          PrintfAD_Result();
+ 164   2        }
+ 165   1      }
+ 166          
+ 167          //获取温度告警
+ 168          //unsigned char MeasureGetTempAlarm(void)
+ 169          //{
+ 170          //  return MeasureStruct.TempAlarmFlag;
+ 171          //}
+ 172          
+ 173          //获取输出DAC使能引脚
+ 174          //unsigned char MeasureGetDacEn(void)
+ 175          //{
+ 176          //  return MeasureStruct.OutDAC_EnFlag;
+ 177          //}
+ 178          
+C51 COMPILER V9.60.0.0   MEASURE                                                           03/26/2026 23:09:13 PAGE 4   
+
+ 179          //获取采集AD量
+ 180          unsigned int MeasureGetAD_Val(enumAnalogIndex index)
+ 181          {
+ 182   1        if(index >= Analog_NUM)
+ 183   1          return 0;
+ 184   1      
+ 185   1        return MeasureStruct.AD_Val[index]; 
+ 186   1      }
+ 187          
+ 188          //获取采集模拟量
+ 189          float MeasureGetAnalog(enumAnalogIndex index)
+ 190          {
+ 191   1        if(index >= Analog_NUM)
+ 192   1          return 0;
+ 193   1      
+ 194   1        if(index == Analog_InPower)   //入射清零值5W
+ 195   1        {
+ 196   2          if(MeasureStruct.AnalogVal[index] < 5)
+ 197   2            return 0;
+ 198   2        }
+ 199   1        else if(index == Analog_RefPower)   //反射清零值3W
+ 200   1        {
+ 201   2          if(MeasureStruct.AnalogVal[index] < 3)
+ 202   2            return 0;
+ 203   2        }
+ 204   1      
+ 205   1        return MeasureStruct.AnalogVal[index];  
+ 206   1      }
+ 207          
+ 208          //获取告警值
+ 209          unsigned char MeasureGetAlarmFlag(void)
+ 210          {
+ 211   1        unsigned char alarm = 0x00;
+ 212   1        if(MeasureStruct.VolAlarmFlag)
+ 213   1          alarm |= SET_BIT1;
+ 214   1      
+ 215   1        if(MeasureStruct.TempAlarmFlag)
+ 216   1          alarm |= SET_BIT2;
+ 217   1      
+ 218   1        if(MeasureStruct.Curr17AlarmFlag)
+ 219   1          alarm |= SET_BIT3;
+ 220   1      
+ 221   1        if(MeasureStruct.Curr2AlarmFlag)
+ 222   1          alarm |= SET_BIT4;
+ 223   1      
+ 224   1        if(MeasureStruct.OverWaveAlarmFlag)
+ 225   1          alarm |= SET_BIT5;
+ 226   1      
+ 227   1        return alarm;
+ 228   1      }
+ 229          
+ 230          //记录输出功率的频率(75~125MHz)
+ 231          void RefreshOutPowerFreq(unsigned char ctrInx)
+ 232          {
+ 233   1         //ctrInx对应没5MHz的段序号
+ 234   1         OutPowerFreq = 75 + ctrInx * 5;
+ 235   1      }
+ 236          
+ 237          //获取输入功率校准序号
+ 238          //[75,90)对应0
+ 239          //[90,110)对应0
+ 240          //[110,125]对应0
+C51 COMPILER V9.60.0.0   MEASURE                                                           03/26/2026 23:09:13 PAGE 5   
+
+ 241          static unsigned char GetInPowerAdjInx(void)
+ 242          {
+ 243   1        if(OutPowerFreq < 90)
+ 244   1          return 0;
+ 245   1        else if(OutPowerFreq < 110)
+ 246   1          return 1;
+ 247   1        else
+ 248   1          return 2;
+ 249   1      }
+ 250          
+ 251          
+ 252          
+ 253          
+ 254          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1222    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =     63      19
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

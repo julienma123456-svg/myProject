@@ -1,0 +1,186 @@
+C51 COMPILER V9.60.0.0   COMM1                                                             03/26/2026 23:09:12 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE COMM1
+OBJECT MODULE PLACED IN .\Obj\comm1.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE Service\comm1.c LARGE OPTIMIZE(8,SPEED) BROWSE INCDIR(.\App;.\Drive;.\Se
+                    -rvice) DEBUG OBJECTEXTEND PRINT(.\List\comm1.lst) TABS(2) OBJECT(.\Obj\comm1.obj)
+
+line level    source
+
+   1          #include "comm1.h"
+   2          #include "uart3.h"
+   3          
+   4          //485通信口，使用资源UART3
+   5          
+   6          static Comm1StructType Comm1Struct;
+   7          
+   8          //结构体初始化
+   9          static void Comm1StructInit(void)
+  10          {
+  11   1          Comm1Struct.ComState = enumIdle;
+  12   1          Comm1Struct.SendInx = 0;
+  13   1          Comm1Struct.SendNum = 0;
+  14   1          Comm1Struct.RecInx = 0;
+  15   1          Comm1Struct.RecCount = 0;
+  16   1        Comm1Struct.IdleCount = 0;
+  17   1      }
+  18          
+  19          //Comm1配置为发送模式(DE为高)
+  20          static void Comm1ConfigTxMode(void)
+  21          {
+  22   1        GPIO_OutLow(enum485CTRL);//低电平光耦导通
+  23   1      }
+  24          
+  25          //Comm1配置为接收模式(DE为低)
+  26          static void Comm1ConfigRxMode(void)
+  27          {
+  28   1        GPIO_OutHigh(enum485CTRL);//高电平光耦不导通
+  29   1      }
+  30          
+  31          //发送一个字节
+  32          static void Comm1SendOneData(unsigned char dataIn)
+  33          {
+  34   1          UART3_SendOneData(dataIn);
+  35   1      }
+  36          
+  37          //发送完成一个字节回调函数(由发送完成中断调用)
+  38          void Comm1SendOneDataOK(void)
+  39          {
+  40   1          unsigned char send = 0;
+  41   1          Comm1Struct.SendInx++;
+  42   1          if(Comm1Struct.SendInx < Comm1Struct.SendNum) //发送下一个字节
+  43   1          {
+  44   2              send = Comm1Struct.SendArray[Comm1Struct.SendInx];
+  45   2              Comm1SendOneData(send);
+  46   2          }
+  47   1          else    //发送完成
+  48   1          {
+  49   2              Comm1Struct.ComState = enumSended;  //0~1ms内变为空闲状态
+  50   2          //Comm1Struct.ComState = enumIdle;
+  51   2          }
+  52   1      }
+  53          
+  54          //========================================================================
+C51 COMPILER V9.60.0.0   COMM1                                                             03/26/2026 23:09:12 PAGE 2   
+
+  55          // 函数: void   Comm1Init(void)
+  56          // 描述: Comm1初始化函数.
+  57          // 参数: none.
+  58          // 返回: none.
+  59          // 版本: V1.0, 2025-6-4
+  60          //========================================================================
+  61          void Comm1Init(void)
+  62          {
+  63   1          Comm1StructInit();
+  64   1      }
+  65          
+  66          //发送一个数组
+  67          unsigned char Comm1SendData(unsigned char *dataIn,unsigned char dataLen)
+  68          {
+  69   1          unsigned char sendLen = 0;
+  70   1          if(dataIn == 0)
+  71   1              return 0;
+  72   1      
+  73   1          if(Comm1Struct.ComState != enumIdle)
+  74   1              return 0;    
+  75   1      
+  76   1          if(dataLen > MAX_LEN_SEND_COMM1)
+  77   1              sendLen = MAX_LEN_SEND_COMM1;
+  78   1          else
+  79   1              sendLen = dataLen;
+  80   1      
+  81   1        Comm1ConfigTxMode();  //发送前先配置为发送模式
+  82   1          MemCopy(Comm1Struct.SendArray,dataIn,sendLen);
+  83   1          Comm1Struct.SendInx = 0;
+  84   1          Comm1Struct.SendNum = sendLen;
+  85   1          Comm1Struct.ComState = enumSending;
+  86   1          Comm1SendOneData(Comm1Struct.SendArray[0]);  //开始发送数据(先发第一个数据)
+  87   1      
+  88   1        return 1;
+  89   1      }
+  90          
+  91          //1ms周期调用函数
+  92          void Comm1Tick(void)
+  93          {
+  94   1        //接收数据完成处理
+  95   1        if(Comm1Struct.ComState == enumReceiving)
+  96   1        {
+  97   2          //收到数据时会清零
+  98   2          Comm1Struct.IdleCount++;  
+  99   2      
+ 100   2          //超过一定时间没收到数据，认为接收数据完成
+ 101   2          if(Comm1Struct.IdleCount >= REC_FRAME_DELAY)
+ 102   2          {
+ 103   3            Comm1Struct.RecCount = Comm1Struct.RecInx;
+ 104   3            Comm1Struct.RecInx = 0;
+ 105   3            Comm1Struct.ComState = enumReceived;
+ 106   3          }
+ 107   2        }
+ 108   1      
+ 109   1        //发送数据完成后，需要配置为接收模式(等待数据)
+ 110   1        if(Comm1Struct.ComState == enumSended)
+ 111   1        {
+ 112   2          Comm1ConfigRxMode();
+ 113   2          Comm1Struct.ComState = enumIdle;
+ 114   2        }
+ 115   1      }
+ 116          
+C51 COMPILER V9.60.0.0   COMM1                                                             03/26/2026 23:09:12 PAGE 3   
+
+ 117          
+ 118          //接收到一个字节
+ 119          void Comm1RecOneData(unsigned char recData)
+ 120          {
+ 121   1          unsigned char inx = 0;
+ 122   1          inx = Comm1Struct.RecInx;
+ 123   1          Comm1Struct.RecArray[inx] = recData;
+ 124   1          Comm1Struct.RecInx++;
+ 125   1        Comm1Struct.IdleCount = 0;
+ 126   1      
+ 127   1        //防止数据溢出
+ 128   1        if(Comm1Struct.RecInx >= MAX_LEN_REC_COMM1)
+ 129   1        {
+ 130   2          Comm1Struct.RecCount = Comm1Struct.RecInx;
+ 131   2          Comm1Struct.RecInx = 0;
+ 132   2          Comm1Struct.ComState = enumReceived;
+ 133   2        }
+ 134   1        else
+ 135   1        {
+ 136   2          Comm1Struct.ComState = enumReceiving;
+ 137   2        }
+ 138   1      }
+ 139          
+ 140          //获取接收数据
+ 141          unsigned char Comm1GetRecData(unsigned char *dataIn,unsigned char *dataLen)
+ 142          {
+ 143   1          unsigned char recLen = 0;
+ 144   1          if(dataIn == 0)
+ 145   1              return 0;
+ 146   1      
+ 147   1          if(Comm1Struct.ComState != enumReceived)
+ 148   1              return 0;
+ 149   1      
+ 150   1          recLen = Comm1Struct.RecCount;
+ 151   1          *dataLen = Comm1Struct.RecCount;
+ 152   1          MemCopy(dataIn,Comm1Struct.RecArray,recLen);    
+ 153   1      
+ 154   1          Comm1Struct.ComState = enumIdle;
+ 155   1      
+ 156   1        return 1;
+ 157   1      }
+ 158          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    413    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =    518      10
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -14,11 +14,12 @@ void WatchDogInit(enumWDTResetTime resetTime)
 //喂狗
 void FeedWatchDog(void)
 {
+	unsigned char regVal = 0x00;
 	if(s_wdtRegVal)
 	{
 		return;//重启设备
 	}
-	unsigned char regVal = 0x00;
+	
 	regVal |= SET_BIT4;		//清除计数
 	WDT_CONTR = regVal;
 }

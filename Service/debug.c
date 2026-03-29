@@ -1,5 +1,6 @@
 #include "debug.h"
 
+
 //打印一个数组
 void PrintfArray(unsigned char *dataIn,unsigned char dataLen)
 {

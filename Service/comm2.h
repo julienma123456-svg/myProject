@@ -3,10 +3,10 @@
 
 #include "typedef.h"
 #include "mem.h"
-
+#include <stdio.h>
 #define     MAX_LEN_SEND_COMM2    100
 #define     MAX_LEN_REC_COMM2     100
-#define		REC_FRAME_DELAY		10		//接收数据后，多久后没数据认为接收完成
+#define		REC_FRAME_DELAY		10		
 
 
 typedef struct tagComm2Struct
@@ -22,11 +22,10 @@ typedef struct tagComm2Struct
 }Comm2StructType;
 
 
-extern void Comm2Init(void);
-extern void Comm2Tick(void);
-extern void Comm2SendOneDataOK(void);
-extern void Comm2RecOneData(unsigned char recData);
-extern unsigned char Comm2SendData(unsigned char *dataIn,unsigned char dataLen);
-extern unsigned char Comm2GetRecData(unsigned char *dataIn,unsigned char *dataLen);
-
+void Comm2Init(void);
+void Comm2Tick(void);
+void Comm2SendOneDataOK(void);
+void Comm2RecOneData(unsigned char recData);
+unsigned char Comm2SendData(unsigned char *dataIn,unsigned char dataLen);
+unsigned char Comm2GetRecData(unsigned char *dataIn,unsigned char *dataLen);
 #endif

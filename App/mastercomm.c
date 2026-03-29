@@ -2,8 +2,9 @@
 #include <stdio.h>
 #include <string.h>
 #include "dac7311.h"
+#include "debug.h"
 // CRC-8 Lookup Table
-static uint8_t crc8_table[] = {
+static unsigned char crc8_table[] = {
     0, 94, 188, 226, 97, 63, 221, 131, 194, 156, 126, 32, 163, 253, 31, 65,  
     157, 195, 33, 127, 252, 162, 64, 30, 95, 1, 227, 189, 62, 96, 130, 220,  
     35, 125, 159, 193, 66, 28, 254, 160, 225, 191, 93, 3, 128, 222, 60, 98,  
@@ -21,20 +22,21 @@ static uint8_t crc8_table[] = {
     233, 183, 85, 11, 136, 214, 52, 106, 43, 117, 151, 201, 74, 20, 246, 168,  
     116, 42, 200, 150, 21, 75, 169, 247, 182, 232, 10, 84, 215, 137, 107, 53  
 };
-
+static unsigned char recArray[256] = {0};
+static unsigned char sendArray[256] = {0};
 static PA_Data_t s_packdata;
 
 // CRC计算函数
-uint8_t calculate_crc(uint8_t* data, uint8_t length) {
-    uint8_t crc = 0;
-    for (uint8_t count = 0; count < length; count++) {
+unsigned char calculate_crc(unsigned char* data, unsigned char length) {
+    unsigned char crc = 0;
+    for (unsigned char count = 0; count < length; count++) {
         crc = crc8_table[crc ^ data[count]];
     }
     return crc;
 }
 
 // 功率拆分：float → 档位 + 小数
-static void power_to_bytes(float p, uint8_t *high, uint8_t *low)
+static void power_to_bytes(float p, unsigned char *high, unsigned char *low)
 {
     int temp = (int)(p * 10);   // 0.1W单位
     *high = temp / 100;         // 10W档
@@ -43,7 +45,7 @@ static void power_to_bytes(float p, uint8_t *high, uint8_t *low)
 
 
 // 回波损耗编码（补码）
-static void return_loss_to_bytes(float rl, uint8_t *h, uint8_t *l)
+static void return_loss_to_bytes(float rl, unsigned char *h, unsigned char *l)
 {
     int val = (int)(rl * 10); // ×10
 
@@ -62,23 +64,31 @@ static void return_loss_to_bytes(float rl, uint8_t *h, uint8_t *l)
 }
 
 // 温度编码
-static uint8_t temp_to_byte(float temp)
+static unsigned char temp_to_byte(float temp)
 {
     if (temp < -25.0f) temp = -25.0f;
     if (temp > 150.0f) temp = 150.0f;
-    return (uint8_t)(temp + 25+0.001f); // -25~150映射到0~175
+    return (unsigned char)(temp + 25+0.001f); // -25~150映射到0~175
+}
+
+// 电流编码 (BCD格式：高四位整数，低四位小数*10)
+static unsigned char current_to_bcd(float current)
+{
+    int integer = (int)current;
+    int decimal = (int)((current - integer) * 10);
+    return (unsigned char)((integer << 4) | decimal);
 }
 
 
 // ================= 核心函数 =================
-static uint8_t PA_BuildDataFrame(uint8_t *buf, PA_Data_t *d)
+static unsigned char PA_BuildDataFrame(unsigned char *buf, PA_Data_t *d)
 {
-    uint8_t i = 0;
+    unsigned char i = 0;
 
     buf[i++] = 0xA5;
     buf[i++] = 0xA5;
 
-    uint8_t len_index = i++; // 先占位
+    unsigned char len_index = i++; // 先占位
 
     buf[i++] = 0xB1;
     buf[i++] = 0x00;
@@ -99,14 +109,15 @@ static uint8_t PA_BuildDataFrame(uint8_t *buf, PA_Data_t *d)
     i += 2;
 
     buf[i++] = d->freq;
-    buf[i++] = data->reserved; // 预留
+    buf[i++] = d->reserved; // 预留
 
 
-    buf[i++] = (uint8_t)(d->current * 10); // 电流（例如0x14=1.4A）
+    buf[i++] = current_to_bcd(d->current); // 电流（例如0x14=1.4A）
     
     buf[i++] = d->fault;
 
     buf[i++] = (d->version >> 8) & 0xFF;
+
     buf[i++] = d->version & 0xFF;
 
     // ===== 长度 =====
@@ -119,14 +130,14 @@ static uint8_t PA_BuildDataFrame(uint8_t *buf, PA_Data_t *d)
     return i; // 返回帧长度
 }
 
-static uint8_t PA_BuildResetFrame(uint8_t *buf)
+static unsigned char PA_BuildResetFrame(unsigned char *buf)
 {
-    uint8_t i = 0;
+    unsigned char i = 0;
 
     buf[i++] = 0xA5;
     buf[i++] = 0xA5;
 
-    uint8_t len_index = i++; // 先占位
+    unsigned char len_index = i++; // 先占位
 
     buf[i++] = 0xB1;
     buf[i++] = 0x00;
@@ -153,16 +164,16 @@ static void update_packdata(PA_Data_t *data)
     data->freq = 0x00;
     data->reserved = 0x13; // 预留
     data->current = MeasureGetAnalog(Analog_17A); // 电流
-    data->fault = 0xFF;
-    data->version = 0x0103;
+    data->fault = MeasureGetAlarmFlag(); // 故障码
+    data->version = (unsigned short)SW_VER_HIGH << 8 | SW_VER_LOW;
 }
 
 // 控制命令处理
-void handle_control_command(uint8_t* data, uint8_t length)
+static void handle_control_command(unsigned char* data, unsigned char length)
 {
     if(length != FUNC_CODE_CONTROL_LEN)
     {
-        printf("控制命令长度不足\n");
+        DEBUG_PRINT("控制命令长度不足\n");
         return;
     }
     if(data[6] == 0x00)
@@ -175,75 +186,82 @@ void handle_control_command(uint8_t* data, uint8_t length)
     }
     else
     {
-        printf("参数超出范围: %02X\n", data[6]);
+        DEBUG_PRINT("参数超出范围: %02X\n", data[6]);
         return;
     }
-    uint8_t gear = data[7];  // 第8字节 档位 (0x00-0x0A)
-    uint8_t level = data[8]; // 第9字节 级别 (0x00-0x0F)
-    float power = data[8] * 10.0 + data[7] * 0.1;  // PA功率 = Byte10*10W + Byte9*0.1W
-    printf("设置PA功率: 档位=%02X, 级别=%02X, 功率=%.1f W\n", gear, level, power);
+    unsigned char gear = data[7];  // 第8字节 档位 (10W单位，0x00-0x0A)
+    unsigned char level = data[8]; // 第9字节 级别 (0.1W单位，0x00-0x0F)
+    float power = gear * 10.0 + level * 0.1;  // PA功率 = 档位*10W + 级别*0.1W
+    DEBUG_PRINT("设置PA功率: 档位=%02X, 级别=%02X, 功率=%.1f W\n", gear, level, power);
     OutputPower(power);
     //频率默认915MHZ 不处理
     //预留不处理
 
-    uint8_t tx_buf[32];
+    unsigned char tx_buf[32];
     memset(tx_buf, 0, sizeof(tx_buf));
     update_packdata(&s_packdata);
-    uint8_t len = PA_BuildDataFrame(tx_buf, &s_packdata);
+    unsigned char len = PA_BuildDataFrame(tx_buf, &s_packdata);
     uart_send(tx_buf, len);
 }
 
 // 查询命令处理
-static void handle_query_command(uint8_t* data, uint8_t length) {
-    if(length != FUNC_CODE_DATA_LEN)
-    {
-        printf("控制命令长度不足\n");
-        return;
-    }
-    uint8_t tx_buf[32];
+static void handle_query_command(unsigned char* data, unsigned char length) {
+    // 查询命令的长度应该固定，不需要严格检查（取决于协议）
+    // if(length < MINIMUM_FRAME_LENGTH) {
+    //     DEBUG_PRINT("查询命令长度不足\n");
+    //     return;
+    // }
+    unsigned char tx_buf[32];
     memset(tx_buf, 0, sizeof(tx_buf));
     update_packdata(&s_packdata);
-    uint8_t len = PA_BuildDataFrame(tx_buf, &s_packdata);
+    unsigned char len = PA_BuildDataFrame(tx_buf, &s_packdata);
     uart_send(tx_buf, len);
 }
 
 // 复位命令处理
-static void handle_reset_command(uint8_t* data, uint8_t length) {
+static void handle_reset_command(unsigned char* data, unsigned char length) {
     //回复格式： A5A5 + 帧长+ B1 + 00 + 7D +1+ CRC校验
     if(length != FUNC_CODE_RESET_LEN)
     {
-        printf("复位命令长度不足\n");
+        DEBUG_PRINT("复位命令长度不足\n");
         return;
     }
-    uint8_t tx_buf[32];
+    unsigned char tx_buf[32];
     memset(tx_buf, 0, sizeof(tx_buf));
-    uint8_t len = PA_BuildResetFrame(tx_buf);
+    unsigned char len = PA_BuildResetFrame(tx_buf);
     uart_send(tx_buf, len);
+    Trap(); // 复位设备
 }
 
 // 处理接收到的帧数据
-void process_frame(uint8_t* received_data, uint8_t length) {
+static void process_frame(unsigned char* received_data, unsigned char length) {
+    // 最小长度检查：帧头(2) + 长度(1) + 地址(1) + 类型(1) + 功能码(1) + CRC(1) = 7字节
+    if (length < 7) {
+        DEBUG_PRINT("帧长度过短: %d\n", length);
+        return;
+    }
+    
     if (received_data[0] == FRAME_HEADER_1 && received_data[1] == FRAME_HEADER_2) {
-        uint8_t frame_length = received_data[2];
+        unsigned char frame_length = received_data[2];
         if(frame_length > length) 
         {
-            printf("帧长度不匹配: %d\n", frame_length);
+            DEBUG_PRINT("帧长度不匹配: %d\n", frame_length);
             return;
         }
-        uint8_t crc = received_data[frame_length - 1];
+        unsigned char crc = received_data[frame_length - 1];
         // CRC 校验
         if (calculate_crc(received_data, frame_length - 1) == crc) {
             if(received_data[3] != DEVICE_ADDRESS) {
-                printf("地址不匹配: %02X\n", received_data[3]);
+                DEBUG_PRINT("地址不匹配: %02X\n", received_data[3]);
                 return;
             }
             if(received_data[4] != FRAME_TYPE_DATA
                 && received_data[4] != FRAME_TYPE_CMD) { // 这里假设帧类型为0x80或0x00
-                printf("帧类型不匹配: %02X\n", received_data[4]);
+                DEBUG_PRINT("帧类型不匹配: %02X\n", received_data[4]);
                 return;
             }
             // 根据功能码处理不同的命令
-            uint8_t func_code = received_data[5];
+            unsigned char func_code = received_data[5];
             switch (func_code) {
                 case FUNC_CODE_CONTROL:
                     handle_control_command(received_data, frame_length);
@@ -254,20 +272,25 @@ void process_frame(uint8_t* received_data, uint8_t length) {
                 case FUNC_CODE_RESET:
                     handle_reset_command(received_data, frame_length);
                     break;
-                case FUNC_CODE_POWER_SET:
-                    handle_power_set_command(received_data, frame_length);
-                    break;
                 default:
-                    printf("未知功能码: %02X\n", func_code);
+                    DEBUG_PRINT("未知功能码: %02X\n", func_code);
                     break;
             }
         } else {
-            printf("CRC校验失败\n");
+            DEBUG_PRINT("CRC校验失败\n");
         }
     } else {
-        printf("无效的帧头\n");
+        DEBUG_PRINT("无效的帧头\n");
     }
 }
 
-
+void MasterCommService(void)
+{
+	unsigned char recLen = 0;
+	if(Comm1GetRecData(recArray,&recLen))		//等待数据
+	{
+		PrintfArray(recArray,recLen);
+		process_frame(recArray, recLen);
+	}
+}
 

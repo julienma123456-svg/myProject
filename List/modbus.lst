@@ -1,4 +1,4 @@
-C51 COMPILER V9.60.0.0   MODBUS                                                            03/26/2026 23:09:12 PAGE 1   
+C51 COMPILER V9.60.0.0   MODBUS                                                            03/29/2026 11:16:00 PAGE 1   
 
 
 C51 COMPILER V9.60.0.0, COMPILATION OF MODULE MODBUS
@@ -62,7 +62,7 @@ line level    source
   52          //50V电压值(u16 * 100)
   53          //入射功率(u16 * 100)
   54          //反射功率(u16 * 100)
-C51 COMPILER V9.60.0.0   MODBUS                                                            03/26/2026 23:09:12 PAGE 2   
+C51 COMPILER V9.60.0.0   MODBUS                                                            03/29/2026 11:16:00 PAGE 2   
 
   55          //2A电流(u16 * 1000)
   56          //17A电流(u16 * 1000)
@@ -70,33 +70,33 @@ line level    source
   58          //DAC输出控制(u16 * 100)
   59          
   60          #ifdef DEBUG_COM1
+  61          void ModBusService(void)
+  62          {
+  63   1        unsigned char recLen = 0;
+  64   1        if(Comm1GetRecData(recArray,&recLen))   //等待数据
+  65   1        {
+  66   2          Comm1SendData(recArray,recLen);
+  67   2        }
+  68   1      }
+  69          #else
+              //main函数调用的服务函数
               void ModBusService(void)
               {
                 unsigned char recLen = 0;
                 if(Comm1GetRecData(recArray,&recLen))   //等待数据
                 {
-                  Comm1SendData(recArray,recLen);
+                  PrintfArray(recArray,recLen);
+                  if(CheckArray(recArray,recLen))     //CRC校验通过
+                  {
+                    //地址符合，长度大于等于6
+                    if((recArray[0] == SELF_ADDRESS) && (recLen >= 6))    
+                    {
+                      ModBusDecode(recArray,recLen);  //数据解析加应答
+                    }     
+                  }
                 }
               }
-              #else
-  70          //main函数调用的服务函数
-  71          void ModBusService(void)
-  72          {
-  73   1        unsigned char recLen = 0;
-  74   1        if(Comm1GetRecData(recArray,&recLen))   //等待数据
-  75   1        {
-  76   2          PrintfArray(recArray,recLen);
-  77   2          if(CheckArray(recArray,recLen))     //CRC校验通过
-  78   2          {
-  79   3            //地址符合，长度大于等于6
-  80   3            if((recArray[0] == SELF_ADDRESS) && (recLen >= 6))    
-  81   3            {
-  82   4              ModBusDecode(recArray,recLen);  //数据解析加应答
-  83   4            }     
-  84   3          }
-  85   2        }
-  86   1      }
-  87          #endif
+              #endif
   88          
   89          //协议解析(简易ModBus协议：对于读数据只看寄存器地址不看数量，对于写数据只能写一个寄存器)
   90          void ModBusDecode(unsigned char *mbdata,unsigned char dataLen)
@@ -126,7 +126,7 @@ line level    source
  114   2          //读取一个校准数据点
  115   2          else if((regAdd >= REG_GetOneAdj_Min) && (regAdd <= REG_GetOneAdj_Max))
  116   2          {
-C51 COMPILER V9.60.0.0   MODBUS                                                            03/26/2026 23:09:12 PAGE 3   
+C51 COMPILER V9.60.0.0   MODBUS                                                            03/29/2026 11:16:00 PAGE 3   
 
  117   3            char adjInx = regAdd - REG_GetOneAdj_Min; 
  118   3            ModBusReadAdjustPoint(sendArray,&sendLen,adjInx);
@@ -190,7 +190,7 @@ line level    source
  176   4            }
  177   3          }
  178   2          //功率控制电压DAC输出
-C51 COMPILER V9.60.0.0   MODBUS                                                            03/26/2026 23:09:12 PAGE 4   
+C51 COMPILER V9.60.0.0   MODBUS                                                            03/29/2026 11:16:00 PAGE 4   
 
  179   2          else if(regAdd == REG_Ctrl_OutPowerDAC)
  180   2          {
@@ -254,7 +254,7 @@ line level    source
  238   2          outData[inx++] = adjDate.Hour;
  239   2          outData[inx++] = adjDate.Min;
  240   2          outData[inx++] = adjDate.Sec;
-C51 COMPILER V9.60.0.0   MODBUS                                                            03/26/2026 23:09:12 PAGE 5   
+C51 COMPILER V9.60.0.0   MODBUS                                                            03/29/2026 11:16:00 PAGE 5   
 
  241   2        }
  242   1      
@@ -275,7 +275,7 @@ line level    source
  257   1        outData[inx++] = 0;
  258   1        outData[inx++] = MeasureGetAlarmFlag(); 
  259   1        //50V
- 260   1        analog = MeasureGetAnalog(Analog_50V);
+ 260   1      //  analog = MeasureGetAnalog(Analog_50V);
  261   1        av = analog * 1000;
  262   1        outData[inx++] = (av >> 8);
  263   1        outData[inx++] = (av & 0xFF);
@@ -285,7 +285,7 @@ line level    source
  267   1        outData[inx++] = (av >> 8);
  268   1        outData[inx++] = (av & 0xFF);
  269   1        //2A电流
- 270   1        analog = MeasureGetAnalog(Analog_2A);
+ 270   1      //  analog = MeasureGetAnalog(Analog_2A);
  271   1        av = analog * 1000;
  272   1        outData[inx++] = (av >> 8);
  273   1        outData[inx++] = (av & 0xFF);
@@ -314,17 +314,17 @@ line level    source
  296   1        inx++;  //长度先不放
  297   1      
  298   1        //源电压AD值
- 299   1        adVal = MeasureGetAD_Val(Analog_50V);
+ 299   1      //  adVal = MeasureGetAD_Val(Analog_50V);
  300   1        outData[inx++] = (adVal >> 8);
  301   1        outData[inx++] = (adVal & 0xFF);
  302   1        //末级功放电流AD值
-C51 COMPILER V9.60.0.0   MODBUS                                                            03/26/2026 23:09:12 PAGE 6   
+C51 COMPILER V9.60.0.0   MODBUS                                                            03/29/2026 11:16:00 PAGE 6   
 
  303   1        adVal = MeasureGetAD_Val(Analog_17A);
  304   1        outData[inx++] = (adVal >> 8);
  305   1        outData[inx++] = (adVal & 0xFF);
  306   1        //末前级功放电流AD值
- 307   1        adVal = MeasureGetAD_Val(Analog_2A);
+ 307   1      //  adVal = MeasureGetAD_Val(Analog_2A);
  308   1        outData[inx++] = (adVal >> 8);
  309   1        outData[inx++] = (adVal & 0xFF);
  310   1        //入射功率AD值
@@ -382,7 +382,7 @@ line level    source
  362   1        {
  363   2          readAdd = 128 * readInx;  //计算读取地址
  364   2          pRead = outData + 3;
-C51 COMPILER V9.60.0.0   MODBUS                                                            03/26/2026 23:09:12 PAGE 7   
+C51 COMPILER V9.60.0.0   MODBUS                                                            03/29/2026 11:16:00 PAGE 7   
 
  365   2          EEPROM_ReadBytes(readAdd,pRead,128);
  366   2          outData[2] = 128; //返回数据长度为0
@@ -446,7 +446,7 @@ line level    source
  424          
  425          //开始校准
  426          void StartAdjust(u8 *outData,unsigned char *dataLen,unsigned int regAdd)
-C51 COMPILER V9.60.0.0   MODBUS                                                            03/26/2026 23:09:12 PAGE 8   
+C51 COMPILER V9.60.0.0   MODBUS                                                            03/29/2026 11:16:00 PAGE 8   
 
  427          {
  428   1        unsigned char inx = 0;
@@ -510,7 +510,7 @@ line level    source
  486   1        {
  487   2          return;
  488   2        }
-C51 COMPILER V9.60.0.0   MODBUS                                                            03/26/2026 23:09:12 PAGE 9   
+C51 COMPILER V9.60.0.0   MODBUS                                                            03/29/2026 11:16:00 PAGE 9   
 
  489   1        outData[inx++] = SELF_ADDRESS;
  490   1        outData[inx++] = CMD_WRITE_VAL;
@@ -574,7 +574,7 @@ line level    source
  548   1        outData[inx++] = 0x01;
  549   1      
  550   1        date.Year  = inData[8] << 8 | inData[9];
-C51 COMPILER V9.60.0.0   MODBUS                                                            03/26/2026 23:09:12 PAGE 10  
+C51 COMPILER V9.60.0.0   MODBUS                                                            03/29/2026 11:16:00 PAGE 10  
 
  551   1        date.Month = inData[10];
  552   1        date.Day   = inData[11];
@@ -638,7 +638,7 @@ line level    source
  610   1        unsigned char inx = 0;
  611   1        outData[inx++] = SELF_ADDRESS;
  612   1        outData[inx++] = CMD_WRITE_VAL;
-C51 COMPILER V9.60.0.0   MODBUS                                                            03/26/2026 23:09:12 PAGE 11  
+C51 COMPILER V9.60.0.0   MODBUS                                                            03/29/2026 11:16:00 PAGE 11  
 
  613   1      
  614   1        //寄存器地址REG_OutputPowerEn
@@ -669,7 +669,7 @@ line level    source
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =   4920    ----
+   CODE SIZE        =   4801    ----
    CONSTANT SIZE    =   ----    ----
    XDATA SIZE       =    512     179
    PDATA SIZE       =   ----    ----

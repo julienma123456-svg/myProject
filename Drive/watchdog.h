@@ -16,4 +16,5 @@ typedef enum
 
 void WatchDogInit(enumWDTResetTime resetTime);
 void FeedWatchDog(void);
+void StopFeedWatchDog(void);
 

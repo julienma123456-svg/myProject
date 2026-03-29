@@ -1,1 +1,0 @@
-"Drive\watchdog.c" LARGE OPTIMIZE (8,SPEED) BROWSE INCDIR(.\App;.\Drive;.\Service) DEBUG OBJECTEXTEND PRINT(.\List\watchdog.lst) TABS (2) OBJECT(.\Obj\watchdog.obj)

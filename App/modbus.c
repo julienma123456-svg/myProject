@@ -257,7 +257,7 @@ void PushRunInfo(unsigned char *outData,unsigned char *dataLen)
 	outData[inx++] = 0;
 	outData[inx++] = MeasureGetAlarmFlag();	
 	//50V
-	analog = MeasureGetAnalog(Analog_50V);
+//	analog = MeasureGetAnalog(Analog_50V);
 	av = analog * 1000;
 	outData[inx++] = (av >> 8);
 	outData[inx++] = (av & 0xFF);
@@ -267,7 +267,7 @@ void PushRunInfo(unsigned char *outData,unsigned char *dataLen)
 	outData[inx++] = (av >> 8);
 	outData[inx++] = (av & 0xFF);
 	//2A电流
-	analog = MeasureGetAnalog(Analog_2A);
+//	analog = MeasureGetAnalog(Analog_2A);
 	av = analog * 1000;
 	outData[inx++] = (av >> 8);
 	outData[inx++] = (av & 0xFF);
@@ -296,7 +296,7 @@ void PushADValInfo(unsigned char *outData,unsigned char *dataLen)
 	inx++;	//长度先不放
 
 	//源电压AD值
-	adVal = MeasureGetAD_Val(Analog_50V);
+//	adVal = MeasureGetAD_Val(Analog_50V);
 	outData[inx++] = (adVal >> 8);
 	outData[inx++] = (adVal & 0xFF);
 	//末级功放电流AD值
@@ -304,7 +304,7 @@ void PushADValInfo(unsigned char *outData,unsigned char *dataLen)
 	outData[inx++] = (adVal >> 8);
 	outData[inx++] = (adVal & 0xFF);
 	//末前级功放电流AD值
-	adVal = MeasureGetAD_Val(Analog_2A);
+//	adVal = MeasureGetAD_Val(Analog_2A);
 	outData[inx++] = (adVal >> 8);
 	outData[inx++] = (adVal & 0xFF);
 	//入射功率AD值

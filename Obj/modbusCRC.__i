@@ -1,1 +1,0 @@
-"Service\modbusCRC.c" LARGE OPTIMIZE (8,SPEED) BROWSE INCDIR(.\App;.\Drive;.\Service) DEBUG OBJECTEXTEND PRINT(.\List\modbusCRC.lst) TABS (2) OBJECT(.\Obj\modbusCRC.obj)

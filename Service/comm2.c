@@ -1,11 +1,11 @@
 #include "comm2.h"
 #include "uart1.h"
 
-//´òÓ¡µ÷ÊÔ¿Ú£¬Ê¹ÓÃ×ÊÔ´UART1
+//ï¿½ï¿½Ó¡ï¿½ï¿½ï¿½Ô¿Ú£ï¿½Ê¹ï¿½ï¿½ï¿½ï¿½Ô´UART1
 
 static xdata Comm2StructType Comm2Struct;
 
-//½á¹¹Ìå³õÊ¼»¯
+//ï¿½á¹¹ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½
 static void Comm2StructInit(void)
 {
     Comm2Struct.ComState = enumIdle;
@@ -16,13 +16,13 @@ static void Comm2StructInit(void)
 	Comm2Struct.IdleCount = 0;
 }
 
-//·¢ËÍÒ»¸ö×Ö½Ú
+//ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½Ö½ï¿½
 static void Comm2SendOneData(unsigned char dataIn)
 {
     UART1_SendOneData(dataIn);
 }
 
-//·¢ËÍÍê³ÉÒ»¸ö×Ö½Ú»Øµ÷º¯Êý(ÓÉ·¢ËÍÍê³ÉÖÐ¶Ïµ÷ÓÃ)
+//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½Ö½Ú»Øµï¿½ï¿½ï¿½ï¿½ï¿½(ï¿½É·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð¶Ïµï¿½ï¿½ï¿½)
 void Comm2SendOneDataOK(void)
 {
     unsigned char send = 0;
@@ -40,18 +40,18 @@ void Comm2SendOneDataOK(void)
 }
 
 //========================================================================
-// º¯Êý: void   Comm2Init(void)
-// ÃèÊö: Comm2Init³õÊ¼»¯º¯Êý.
-// ²ÎÊý: none.
-// ·µ»Ø: none.
-// °æ±¾: V1.0, 2025-6-4
+// ï¿½ï¿½ï¿½ï¿½: void   Comm2Init(void)
+// ï¿½ï¿½ï¿½ï¿½: Comm2Initï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
+// ï¿½ï¿½ï¿½ï¿½: none.
+// ï¿½ï¿½ï¿½ï¿½: none.
+// ï¿½æ±¾: V1.0, 2025-6-4
 //========================================================================
 void Comm2Init(void)
 {
     Comm2StructInit();
 }
 
-//·¢ËÍÒ»¸öÊý×é
+//ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 unsigned char Comm2SendData(unsigned char *dataIn,unsigned char dataLen)
 {
     unsigned char xdata sendLen = 0;
@@ -75,16 +75,16 @@ unsigned char Comm2SendData(unsigned char *dataIn,unsigned char dataLen)
 	return 1;
 }
 
-//1msÖÜÆÚµ÷ÓÃº¯Êý
+//1msï¿½ï¿½ï¿½Úµï¿½ï¿½Ãºï¿½ï¿½ï¿½
 void Comm2Tick(void)
 {
-	//½ÓÊÕÊý¾ÝÍê³É´¦Àí
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É´ï¿½ï¿½ï¿½
 	if(Comm2Struct.ComState == enumReceiving)
 	{
-		//ÊÕµ½Êý¾ÝÊ±»áÇåÁã
+		//ï¿½Õµï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		Comm2Struct.IdleCount++;
 
-		//³¬¹ýÒ»¶¨Ê±¼äÃ»ÊÕµ½Êý¾Ý£¬ÈÏÎª½ÓÊÕÊý¾ÝÍê³É
+		//ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½Ê±ï¿½ï¿½Ã»ï¿½Õµï¿½ï¿½ï¿½ï¿½Ý£ï¿½ï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		if(Comm2Struct.IdleCount >= REC_FRAME_DELAY)
 		{
 			Comm2Struct.RecCount = Comm2Struct.RecInx;
@@ -95,7 +95,7 @@ void Comm2Tick(void)
 }
 
 
-//½ÓÊÕµ½Ò»¸ö×Ö½Ú
+//ï¿½ï¿½ï¿½Õµï¿½Ò»ï¿½ï¿½ï¿½Ö½ï¿½
 void Comm2RecOneData(unsigned char recData)
 {
     unsigned char xdata inx = 0;
@@ -104,7 +104,7 @@ void Comm2RecOneData(unsigned char recData)
     Comm2Struct.RecInx++;
 	Comm2Struct.IdleCount = 0;
 
-	//·ÀÖ¹Êý¾ÝÒç³ö
+	//ï¿½ï¿½Ö¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	if(Comm2Struct.RecInx >= MAX_LEN_REC_COMM2)
 	{
 		Comm2Struct.RecCount = Comm2Struct.RecInx;
@@ -117,7 +117,7 @@ void Comm2RecOneData(unsigned char recData)
 	}
 }
 
-//»ñÈ¡½ÓÊÕÊý¾Ý
+//ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 //unsigned char Comm2GetRecData(unsigned char *dataIn,unsigned char *dataLen)
 //{
 //    unsigned char xdata recLen = 0;

@@ -1,1 +1,0 @@
-"Service\comm1.c" LARGE OPTIMIZE (8,SPEED) BROWSE INCDIR(.\App;.\Drive;.\Service) DEBUG OBJECTEXTEND PRINT(.\List\comm1.lst) TABS (2) OBJECT(.\Obj\comm1.obj)

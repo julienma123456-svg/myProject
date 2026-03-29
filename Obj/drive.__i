@@ -1,1 +1,0 @@
-"Drive\drive.c" LARGE OPTIMIZE (8,SPEED) BROWSE INCDIR(.\App;.\Drive;.\Service) DEBUG OBJECTEXTEND PRINT(.\List\drive.lst) TABS (2) OBJECT(.\Obj\drive.obj)

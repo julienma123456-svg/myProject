@@ -48,6 +48,11 @@ typedef struct tagMeasure
 	float lossVal;	//»Ø²¨ËðºÄ
 }MeasureStructType;
 
+typedef struct {
+    unsigned short adc;
+    short temp;   // µ¥Î»£º0.1¡ãC
+} ntc_table_t;
+
 void MeasureInit(void);
 //void MeasureAllVal(void);
 void MeasureTick(void);

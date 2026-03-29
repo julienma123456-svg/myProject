@@ -5,7 +5,12 @@
 #include "stdio.h"
 #include "modbusCRC.h"
 #include "measure.h"
+#ifdef __USEMODBUS_SERVICE__
 #include "modbus.h"
+#endif
+#ifdef __USEMASTERCOMM_SERVICE__
+#include "mastercomm.h"
+#endif
 #include "dac7311.h"
 #include "adjust.h"
 #include "led.h"
@@ -41,7 +46,12 @@ void main(void)
 	while(1)
 	{
 		MeasureTask();		 //模拟量采集的任务函数
+		#ifdef __USEMODBUS_SERVICE__
 		ModBusService();	 //485通信服务函数
+		#endif
+		#ifdef __USEMASTERCOMM_SERVICE__
+		MasterCommService(); //主控通信服务函数
+		#endif
 		LED_Task();			 //LED点灯任务
 //	    if(Comm2GetRecData(recArray,&recLen))
 //		{

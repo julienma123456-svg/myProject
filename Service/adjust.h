@@ -35,18 +35,29 @@ typedef enum
 	enumInputPower2,	 	//90~110MHz入射功率校准
 	enumInputPower3,		//110~125MHz入射功率校准
 	enumRefPower,
-	enum75MHzPower,			//每5M一个校准，75MHz为75~80的缩写
+	enum75MHzPower,			//每5M一个校准，75MHz为75~80的缩写  变成0
+	enum_seg0_20_POWER = enum75MHzPower,
 	enum80MHzPower,
+	enum_seg20_40_POWER = enum80MHzPower,
 	enum85MHzPower,
+	enum_seg40_60_POWER = enum85MHzPower,
 	enum90MHzPower,
+	enum_seg60_80_POWER = enum90MHzPower,
 	enum95MHzPower,
+	enum_seg80_100_POWER = enum95MHzPower,
 	enum100MHzPower,
+	enum_seg100_120_POWER = enum100MHzPower,
 	enum105MHzPower,
+	enum_seg120_140_POWER = enum105MHzPower,
 	enum110MHzPower,
+	enum_seg140_160_POWER = enum110MHzPower,
 	enum115MHzPower,
+	enum_seg160_180_POWER = enum115MHzPower,
 	enum120MHzPower,	   	//每5M一个校准，校准范围为75~125MHz
+	enum_seg180_200_POWER = enum120MHzPower,
 	enumAdjustNum,
 }enumAdjustIndex;
+
 
 typedef struct tagAdjustManage
 {
@@ -78,5 +89,5 @@ char AdjustReadPoint(enumAdjustIndex index,AdjustPointType *point);
 void SaveAdjustData(enumAdjustIndex index,DateStructType date);
 void LoadAdjustData(void);
 float GetAdjustResult(enumAdjustIndex index,unsigned int input,char *err);
-
+unsigned char GetOutputPowerIndex(float freq);
 #endif

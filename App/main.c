@@ -22,6 +22,26 @@ void Timer0_Service(void);
 unsigned char recLen = 0;
 unsigned char xdata recArray[100] = {0};
 
+static void DataDistributionComm1(void)
+{
+	if(Comm1GetRecData(recArray,&recLen))		//等待数据
+	{
+		if(recLen < 2)
+		{
+			return;
+		}
+		if(IsMasterCommFrame(recArray[0], recArray[1]) == 1)
+		{
+			MasterCommService(recArray, recLen);
+		}
+		else
+		{
+			ModBusService(recArray, recLen);//校准
+		}
+	}
+}
+
+
 void main(void)
 {
 	char i = 0;
@@ -46,12 +66,9 @@ void main(void)
 	while(1)
 	{
 		MeasureTask();		 //模拟量采集的任务函数
-		#ifdef __USEMODBUS_SERVICE__
-		ModBusService();	 //485通信服务函数
-		#endif
-		#ifdef __USEMASTERCOMM_SERVICE__
-		MasterCommService(); //主控通信服务函数
-		#endif
+		
+		DataDistributionComm1(); //Comm1数据分发处理函数
+		// DataDistributionComm2(); //Comm2数据分发处理函数
 		LED_Task();			 //LED点灯任务
 //	    if(Comm2GetRecData(recArray,&recLen))
 //		{

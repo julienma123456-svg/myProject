@@ -1,3 +1,5 @@
+#ifndef MODBUS_H
+#define MODBUS_H
 #include "typedef.h"
 #include "comm1.h"
 #include "modbusCRC.h"
@@ -59,8 +61,8 @@
 #define		DEBUG_COM1
 #endif
 
-void ModBusService(void);
+void ModBusService(unsigned char* pdta, unsigned char dataLen);
 
-
+#endif
 
 

@@ -1,11 +1,11 @@
 #include "adjust.h"
 
-//Ğ£×¼Ïà¹ØÊı¾İ½á¹¹Ìå
+//æ ¡å‡†ç›¸å…³æ•°æ®ç»“æ„ä½“
 AdjustManageType AdjustManage;
 
 AdjustDataType	 AdjustData[enumAdjustNum];
 
-//»ñÈ¡ÊÇ·ñÍê³ÉĞ£×¼
+//è·å–æ˜¯å¦å®Œæˆæ ¡å‡†
 unsigned char AdjustIsFinish(enumAdjustIndex index)
 {
 	if(index >= enumAdjustNum)
@@ -16,7 +16,7 @@ unsigned char AdjustIsFinish(enumAdjustIndex index)
 	return AdjustManage.IsAdjust[index];
 }
 
-//»ñÈ¡Ğ£×¼ÈÕÆÚ
+//è·å–æ ¡å‡†æ—¥æœŸ
 unsigned char AdjustGetDate(enumAdjustIndex inx,DateStructType *date)
 {
 	if(inx >= enumAdjustNum)
@@ -24,11 +24,11 @@ unsigned char AdjustGetDate(enumAdjustIndex inx,DateStructType *date)
 		return 0;
 	}
 
-	//ÄêÔÂÈÕ
+	//å¹´æœˆæ—¥
 	date->Year = AdjustData[inx].AdjustDate.Year;
 	date->Month = AdjustData[inx].AdjustDate.Month;
 	date->Day = AdjustData[inx].AdjustDate.Day;
-	//Ê±·ÖÃë
+	//æ—¶åˆ†ç§’
 	date->Hour = AdjustData[inx].AdjustDate.Hour;
 	date->Min = AdjustData[inx].AdjustDate.Min;
 	date->Sec = AdjustData[inx].AdjustDate.Sec;
@@ -36,7 +36,7 @@ unsigned char AdjustGetDate(enumAdjustIndex inx,DateStructType *date)
 	return 1;
 }
 
-//¿ªÊ¼Ğ£×¼
+//å¼€å§‹æ ¡å‡†
 void AdjustStart(enumAdjustIndex inx)
 {
 	char i = 0;
@@ -57,7 +57,7 @@ void AdjustStart(enumAdjustIndex inx)
 	}
 }
 
-//¿ªÊ¼¶ÁÈ¡Ğ£×¼Êı¾İ
+//å¼€å§‹è¯»å–æ ¡å‡†æ•°æ®
 void AdjustStartRead(enumAdjustIndex inx)
 {
 	if(inx >= enumAdjustNum)
@@ -68,7 +68,7 @@ void AdjustStartRead(enumAdjustIndex inx)
 	AdjustManage.ReadInx[inx] = 0;
 }
 
-//Ğ£×¼Êı¾İÊ±£¬Ìí¼ÓÒ»¸öµãµÄÊı¾İ
+//æ ¡å‡†æ•°æ®æ—¶ï¼Œæ·»åŠ ä¸€ä¸ªç‚¹çš„æ•°æ®
 char AdjustAddPoint(enumAdjustIndex inx,AdjustPointType point)
 {
 	char ip = 0;
@@ -90,7 +90,7 @@ char AdjustAddPoint(enumAdjustIndex inx,AdjustPointType point)
 	return 1; 
 }
 
-//¶ÁÈ¡Ò»¸öĞ£×¼Êı¾İµã
+//è¯»å–ä¸€ä¸ªæ ¡å‡†æ•°æ®ç‚¹
 char AdjustReadPoint(enumAdjustIndex inx,AdjustPointType *point)
 {
 	char ip = 0;
@@ -119,7 +119,7 @@ char AdjustReadPoint(enumAdjustIndex inx,AdjustPointType *point)
 	}
 }
 
-//±£´æĞ£×¼Êı¾İµ½EEPROM
+//ä¿å­˜æ ¡å‡†æ•°æ®åˆ°EEPROM
 void SaveAdjustData(enumAdjustIndex inx,DateStructType date)
 {
 	unsigned int eeAdd = 0;
@@ -140,34 +140,34 @@ void SaveAdjustData(enumAdjustIndex inx,DateStructType date)
 	AdjustData[inx].AdjustDate.Sec   = date.Sec;
 	ArrayAddCheck((u8 *)&AdjustData[inx],EE_SIZE_ADJ);
 
-	if(inx % 2 == 0)	//Å¼Êı£¬Ğ´Èëµ±Ç°Êı¾İºÍÏÂÒ»¸öĞ£×¼Êı¾İ
+	if(inx % 2 == 0)	//å¶æ•°ï¼Œå†™å…¥å½“å‰æ•°æ®å’Œä¸‹ä¸€ä¸ªæ ¡å‡†æ•°æ®
 	{
 		EEPROM_SectorErase(eeAdd);
-		EEPROM_WriteBytes(eeAdd,(u8 *)&AdjustData[inx],EE_SIZE_ADJ);  //Ğ´ÈëµÚÒ»·İÊı¾İ
+		EEPROM_WriteBytes(eeAdd,(u8 *)&AdjustData[inx],EE_SIZE_ADJ);  //å†™å…¥ç¬¬ä¸€ä»½æ•°æ®
 		eeAdd = eeAdd + EE_SIZE_ADJ;
-		EEPROM_WriteBytes(eeAdd,(u8 *)&AdjustData[inx],EE_SIZE_ADJ);  //Ğ´ÈëµÚ¶ş·İÊı¾İ
+		EEPROM_WriteBytes(eeAdd,(u8 *)&AdjustData[inx],EE_SIZE_ADJ);  //å†™å…¥ç¬¬äºŒä»½æ•°æ®
 
 		eeAdd = eeAdd + EE_SIZE_ADJ;
-		EEPROM_WriteBytes(eeAdd,(u8 *)&AdjustData[inx + 1],EE_SIZE_ADJ);  //Ğ´ÈëµÚÒ»·İÊı¾İ
+		EEPROM_WriteBytes(eeAdd,(u8 *)&AdjustData[inx + 1],EE_SIZE_ADJ);  //å†™å…¥ç¬¬ä¸€ä»½æ•°æ®
 		eeAdd = eeAdd + EE_SIZE_ADJ;
-		EEPROM_WriteBytes(eeAdd,(u8 *)&AdjustData[inx + 1],EE_SIZE_ADJ);  //Ğ´ÈëµÚ¶ş·İÊı¾İ
+		EEPROM_WriteBytes(eeAdd,(u8 *)&AdjustData[inx + 1],EE_SIZE_ADJ);  //å†™å…¥ç¬¬äºŒä»½æ•°æ®
 	}
-	else		   //Å¼Êı£¬Ğ´ÈëÉÏÒ»¸öĞ£×¼Êı¾İºÍµ±Ç°Êı¾İ
+	else		   //å¶æ•°ï¼Œå†™å…¥ä¸Šä¸€ä¸ªæ ¡å‡†æ•°æ®å’Œå½“å‰æ•°æ®
 	{
 		eeAdd = eeAdd - 0x100;
 		EEPROM_SectorErase(eeAdd);
-		EEPROM_WriteBytes(eeAdd,(u8 *)&AdjustData[inx - 1],EE_SIZE_ADJ);  //Ğ´ÈëµÚÒ»·İÊı¾İ
+		EEPROM_WriteBytes(eeAdd,(u8 *)&AdjustData[inx - 1],EE_SIZE_ADJ);  //å†™å…¥ç¬¬ä¸€ä»½æ•°æ®
 		eeAdd = eeAdd + EE_SIZE_ADJ;
-		EEPROM_WriteBytes(eeAdd,(u8 *)&AdjustData[inx - 1],EE_SIZE_ADJ);  //Ğ´ÈëµÚ¶ş·İÊı¾İ
+		EEPROM_WriteBytes(eeAdd,(u8 *)&AdjustData[inx - 1],EE_SIZE_ADJ);  //å†™å…¥ç¬¬äºŒä»½æ•°æ®
 
 		eeAdd = eeAdd + EE_SIZE_ADJ;
-		EEPROM_WriteBytes(eeAdd,(u8 *)&AdjustData[inx],EE_SIZE_ADJ);  //Ğ´ÈëµÚÒ»·İÊı¾İ
+		EEPROM_WriteBytes(eeAdd,(u8 *)&AdjustData[inx],EE_SIZE_ADJ);  //å†™å…¥ç¬¬ä¸€ä»½æ•°æ®
 		eeAdd = eeAdd + EE_SIZE_ADJ;
-		EEPROM_WriteBytes(eeAdd,(u8 *)&AdjustData[inx],EE_SIZE_ADJ);  //Ğ´ÈëµÚ¶ş·İÊı¾İ
+		EEPROM_WriteBytes(eeAdd,(u8 *)&AdjustData[inx],EE_SIZE_ADJ);  //å†™å…¥ç¬¬äºŒä»½æ•°æ®
 	}
 }
 
-//´ÓEEPROMÖĞ¼ÓÔØĞ£×¼Êı¾İ
+//ä»EEPROMä¸­åŠ è½½æ ¡å‡†æ•°æ®
 void LoadAdjustData(void)
 {
 #ifdef	DEBUG_ADJUST
@@ -192,7 +192,7 @@ void LoadAdjustData(void)
 		{
 			AdjustManage.IsAdjust[i] = 1;
 		}
-		else  //Ğ£Ñé²»¹ıÔò¶ÁÈ¡±¸·İÊı¾İ
+		else  //æ ¡éªŒä¸è¿‡åˆ™è¯»å–å¤‡ä»½æ•°æ®
 		{
 		 	EEPROM_ReadBytes(eeAdd + EE_SIZE_ADJ,  (u8 *)&AdjustData[i],EE_SIZE_ADJ);
 			if(CheckArray((u8 *)&AdjustData[i],EE_SIZE_ADJ))
@@ -208,8 +208,22 @@ void LoadAdjustData(void)
 #endif
 
 }
+//0~200åˆ†é…åˆ°enum_seg0_20_POWER~enum_seg180_200_POWER
+unsigned char GetOutputPowerIndex(float freq)
+{
+	unsigned char index = 0;
+    if (freq < 0.0f) {
+        return enum_seg0_20_POWER;
+    }
+    if (freq >= 200.0f) {
+        return enum_seg180_200_POWER;
+    }
+    // æ¯20MHzä¸€ä¸ªæ®µ
+    index = (unsigned char)(freq / 20.0f);
+    return index;
+}
 
-//¼ÆËãĞ£×¼½á¹û
+//è®¡ç®—æ ¡å‡†ç»“æœ
 float GetAdjustResult(enumAdjustIndex inx,unsigned int input,char *err)
 {
 	char i = 0;
@@ -224,7 +238,7 @@ float GetAdjustResult(enumAdjustIndex inx,unsigned int input,char *err)
 	 	return 0;
 	}
 
-	//Ã»ÓĞĞ£×¼¼ÇÂ¼
+	//æ²¡æœ‰æ ¡å‡†è®°å½•
 	if(!AdjustManage.IsAdjust[inx])
 	{
 		*err = 2;
@@ -232,7 +246,7 @@ float GetAdjustResult(enumAdjustIndex inx,unsigned int input,char *err)
 	}
 
 	arrayLen = sizeof(AdjustData[0].Point) / sizeof(AdjustData[0].Point[0]);
-	//Í³¼ÆÓĞ¶àÉÙ¸öĞ£×¼µã(0xFFFF±íÊ¾Ã»ÓĞĞ£×¼)
+	//ç»Ÿè®¡æœ‰å¤šå°‘ä¸ªæ ¡å‡†ç‚¹(0xFFFFè¡¨ç¤ºæ²¡æœ‰æ ¡å‡†)
 	for(i = 0;i < arrayLen;i++)
 	{
 		if(AdjustData[inx].Point[i].ValX == 0xFFFF)
@@ -242,14 +256,14 @@ float GetAdjustResult(enumAdjustIndex inx,unsigned int input,char *err)
 		}
 	}
 	
-	//Ğ£×¼µãĞ¡ÓÚ2£¬¼ÆËã²»ÁË
+	//æ ¡å‡†ç‚¹å°äº2ï¼Œè®¡ç®—ä¸äº†
 	if(pointNum < 2)
 	{
 		*err = 3;
 	 	return 0;
 	}
 	
-	//Èç¹ûĞ¡ÓÚ×îĞ¡µÄÒ»¸öĞ£×¼µã£¬°´Õı±È´¦Àí
+	//å¦‚æœå°äºæœ€å°çš„ä¸€ä¸ªæ ¡å‡†ç‚¹ï¼ŒæŒ‰æ­£æ¯”å¤„ç†
 	if(input < AdjustData[inx].Point[0].ValX)
 	{
 		float k = (float)AdjustData[inx].Point[0].ValY / AdjustData[inx].Point[0].ValX;
@@ -257,7 +271,7 @@ float GetAdjustResult(enumAdjustIndex inx,unsigned int input,char *err)
 		return (k * input);
 	}	
 
-	//ÕÒµ½Çø¼ä
+	//æ‰¾åˆ°åŒºé—´
 	for(i = 0;i < pointNum;i++)
 	{
 	 	if(AdjustData[inx].Point[i].ValX > input)
@@ -267,13 +281,13 @@ float GetAdjustResult(enumAdjustIndex inx,unsigned int input,char *err)
 		}
 	}
 
-	//Èç¹û´óÓÚ×î´óÒ»¸öĞ£×¼µã£¬°´×îºóÁ½¸öĞ£×¼µãÖ±ÏßĞ£×¼
+	//å¦‚æœå¤§äºæœ€å¤§ä¸€ä¸ªæ ¡å‡†ç‚¹ï¼ŒæŒ‰æœ€åä¸¤ä¸ªæ ¡å‡†ç‚¹ç›´çº¿æ ¡å‡†
 	if(findInx == 0)
 	{
 		findInx = pointNum - 1;
 	}
 
-	//Çø¼äÎª(findInx - 1)ºÍ(findInx)Ö®¼ä
+	//åŒºé—´ä¸º(findInx - 1)å’Œ(findInx)ä¹‹é—´
 	{
 		//y1 = k * x1 + b;
 		//y2 = k * x2 + b;

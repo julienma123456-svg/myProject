@@ -193,7 +193,9 @@ static void handle_control_command(unsigned char* data, unsigned char length)
     unsigned char level = data[8]; // 第9字节 级别 (0.1W单位，0x00-0x0F)
     float power = gear * 10.0 + level * 0.1;  // PA功率 = 档位*10W + 级别*0.1W
     DEBUG_PRINT("设置PA功率: 档位=%02X, 级别=%02X, 功率=%.1f W\n", gear, level, power);
-    OutputPower(power);
+    unsigned char output_power_index = GetOutputPowerIndex(power);
+    float outDAC = GetAdjustResult(output_power_index,power,&err);
+    OutputPower(outDAC);
     //频率默认915MHZ 不处理
     //预留不处理
 
@@ -284,13 +286,21 @@ static void process_frame(unsigned char* received_data, unsigned char length) {
     }
 }
 
-void MasterCommService(void)
+unsigned char IsMasterCommFrame(unsigned char data1, unsigned char data2)
 {
-	unsigned char recLen = 0;
-	if(Comm1GetRecData(recArray,&recLen))		//等待数据
-	{
-		PrintfArray(recArray,recLen);
-		process_frame(recArray, recLen);
-	}
+    if(data1 == FRAME_HEADER_1 && data2 == FRAME_HEADER_2)
+    {
+        return 1;
+    }
+    return 0;
+}
+
+void MasterCommService(unsigned char *pdta, unsigned char dataLen)
+{
+    if(pdta == 0 || dataLen == 0)
+        return;
+	
+    PrintfArray(pdta,dataLen);
+	process_frame(pdta, dataLen);
 }
 

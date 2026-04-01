@@ -45,5 +45,6 @@ typedef struct
 } PA_Data_t;
 
 // 函数声明
-void MasterCommService(void);
+unsigned char IsMasterCommFrame(unsigned char data1, unsigned char data2);
+void MasterCommService(unsigned char *pdta, unsigned char dataLen);
 #endif // PROTOCOL_H

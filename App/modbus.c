@@ -58,30 +58,26 @@ static void OutputPowerEn(u8 *inData,u8 *outData,unsigned char *dataLen);
 //DAC输出控制(u16 * 100)
 
 #ifdef DEBUG_COM1
-void ModBusService(void)
+void ModBusService(unsigned char* pdta, unsigned char dataLen)
 {
-	unsigned char recLen = 0;
-	if(Comm1GetRecData(recArray,&recLen))		//等待数据
-	{
-		Comm1SendData(recArray,recLen);
-	}
+	if(pdta == 0 || dataLen == 0)
+		retutn;
+	Comm1SendData(pdta,dataLen);
 }
 #else
 //main函数调用的服务函数
-void ModBusService(void)
+void ModBusService(unsigned char* pdta, unsigned char dataLen)
 {
-	unsigned char recLen = 0;
-	if(Comm1GetRecData(recArray,&recLen))		//等待数据
+	if(pdta == 0 || dataLen == 0)
+		retutn;
+	PrintfArray(pdta,dataLen);
+	if(CheckArray(pdta,dataLen))			//CRC校验通过
 	{
-		PrintfArray(recArray,recLen);
-		if(CheckArray(recArray,recLen))			//CRC校验通过
+		//地址符合，长度大于等于6
+		if((pdta[0] == SELF_ADDRESS) && (dataLen >= 6))		
 		{
-			//地址符合，长度大于等于6
-			if((recArray[0] == SELF_ADDRESS) && (recLen >= 6))		
-			{
-				ModBusDecode(recArray,recLen);	//数据解析加应答
-			}		 	
-		}
+			ModBusDecode(pdta,dataLen);	//数据解析加应答
+		}		 	
 	}
 }
 #endif
@@ -464,9 +460,9 @@ void AddAdjustPointInput(u8 *inData,u8 *outData,u8 *dataLen,u8 adjInx)
 	outData[inx++] = 0x01;
 
 	//ADC计算功率
-	point.ValY = inData[7] << 8 | inData[8];
+	point.ValY = inData[7] << 8 | inData[8];//给定值
 	if(adjInx < 3) //0 1 2为输入功率
-		point.ValX = MeasureGetAD_Val(Analog_InPower);
+		point.ValX = MeasureGetAD_Val(Analog_InPower);//采集值
 	else   //3为反射功率
 	{
 		point.ValX = MeasureGetAD_Val(Analog_RefPower);	

@@ -3,7 +3,7 @@
 #include "typedef.h"
 
 #define __USEMASTERCOMM_SERVICE__
-// #define __USEMODBUS_SERVICE__
+#define __USEMODBUS_SERVICE__
 // 1）仿真输出（Keil Simulator）：打开 USE_SIMULATOR
 // 2）串口输出（实际板子或仿真串口转发）：关闭 USE_SIMULATOR
 #define USE_SIMULATOR//输出重定向位置 keil还是串口

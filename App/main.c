@@ -20,7 +20,7 @@ void Timer0_IntService(void);
 void Timer0_Service(void);
 
 unsigned char recLen = 0;
-unsigned char xdata recArray[100] = {0};
+unsigned char xdata recArray[256] = {0};
 
 static void DataDistributionComm1(void)
 {
@@ -30,6 +30,7 @@ static void DataDistributionComm1(void)
 		{
 			return;
 		}
+		PrintfArray(recArray,recLen);
 		if(IsMasterCommFrame(recArray[0], recArray[1]) == 1)
 		{
 			MasterCommService(recArray, recLen);
@@ -50,10 +51,9 @@ void main(void)
 	EnableInt();
 	//配置定时器0，每1ms中断一次
 	Timer0_Init(US2RELOAD(1000),Timer0_IntService);
-	//串口3初始化，用于实现Comm1(485通信)
-	UART3_Config(9600,Comm1SendOneDataOK,Comm1RecOneData);
-	//串口1初始化，用于实现Comm2(打印调试口)
-	UART1_Config(115200,Comm2SendOneDataOK,Comm2RecOneData);
+
+	UART3_Config(9600);
+	UART1_Config(9600);
 
 	Comm1Init();   //Comm1初始化
 	Comm2Init();   //Comm2初始化
@@ -62,18 +62,24 @@ void main(void)
 	PowerOnFlash();
 	WatchDogInit(enumReset1050ms);
 	LoadAdjustData();
-
 	while(1)
 	{
+		
 		MeasureTask();		 //模拟量采集的任务函数
 		
 		DataDistributionComm1(); //Comm1数据分发处理函数
 		// DataDistributionComm2(); //Comm2数据分发处理函数
 		LED_Task();			 //LED点灯任务
-//	    if(Comm2GetRecData(recArray,&recLen))
-//		{
-//			Comm2SendData(recArray,recLen);
-//		}
+		
+		// if(Comm1GetRecData(recArray,&recLen))
+		// {
+		// 	Comm1SendData(recArray,recLen);
+		// }
+
+	    // if(Comm2GetRecData(recArray,&recLen))
+		// {
+		// 	Comm2SendData(recArray,recLen);
+		// }
 		if(Timer0Flag)
 		{
 			Timer0Flag = 0;

@@ -231,7 +231,14 @@ float GetAdjustResult(enumAdjustIndex inx,unsigned int input,char *err)
 	int  arrayLen = 0;
 	int  pointNum = 0;
 	float k = 0,b = 0;
-
+	if(inx >= enumInputPower && inx <= enumInputPower3)
+	{
+		inx = enumInputPower;//固定只校准一个频段
+	}
+	else if(inx >= enum75MHzPower && inx <= enum120MHzPower)
+	{
+		inx = enum75MHzPower;//固定只校准一个频段
+	}
 	if(inx >= enumAdjustNum)
 	{
 		*err = 1;

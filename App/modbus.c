@@ -61,7 +61,7 @@ static void OutputPowerEn(u8 *inData,u8 *outData,unsigned char *dataLen);
 void ModBusService(unsigned char* pdta, unsigned char dataLen)
 {
 	if(pdta == 0 || dataLen == 0)
-		retutn;
+		return;
 	Comm1SendData(pdta,dataLen);
 }
 #else
@@ -69,7 +69,7 @@ void ModBusService(unsigned char* pdta, unsigned char dataLen)
 void ModBusService(unsigned char* pdta, unsigned char dataLen)
 {
 	if(pdta == 0 || dataLen == 0)
-		retutn;
+		return;
 	PrintfArray(pdta,dataLen);
 	if(CheckArray(pdta,dataLen))			//CRC校验通过
 	{
@@ -253,8 +253,7 @@ void PushRunInfo(unsigned char *outData,unsigned char *dataLen)
 	outData[inx++] = 0;
 	outData[inx++] = MeasureGetAlarmFlag();	
 	//50V
-//	analog = MeasureGetAnalog(Analog_50V);
-	av = analog * 1000;
+	av = 50 * 1000;
 	outData[inx++] = (av >> 8);
 	outData[inx++] = (av & 0xFF);
 	//17A电流
@@ -263,8 +262,8 @@ void PushRunInfo(unsigned char *outData,unsigned char *dataLen)
 	outData[inx++] = (av >> 8);
 	outData[inx++] = (av & 0xFF);
 	//2A电流
-//	analog = MeasureGetAnalog(Analog_2A);
-	av = analog * 1000;
+	analog = MeasureGetAnalog(Analog_TEMP);
+	av = analog * 10;
 	outData[inx++] = (av >> 8);
 	outData[inx++] = (av & 0xFF);
 	//入射功率
@@ -292,15 +291,15 @@ void PushADValInfo(unsigned char *outData,unsigned char *dataLen)
 	inx++;	//长度先不放
 
 	//源电压AD值
-//	adVal = MeasureGetAD_Val(Analog_50V);
+	adVal = 50.00;//默认值
 	outData[inx++] = (adVal >> 8);
 	outData[inx++] = (adVal & 0xFF);
-	//末级功放电流AD值
+	//直流电流采集
 	adVal = MeasureGetAD_Val(Analog_17A);
 	outData[inx++] = (adVal >> 8);
 	outData[inx++] = (adVal & 0xFF);
-	//末前级功放电流AD值
-//	adVal = MeasureGetAD_Val(Analog_2A);
+	//温度采集
+	adVal = MeasureGetAD_Val(Analog_TEMP);
 	outData[inx++] = (adVal >> 8);
 	outData[inx++] = (adVal & 0xFF);
 	//入射功率AD值

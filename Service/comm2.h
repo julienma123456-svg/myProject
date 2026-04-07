@@ -3,6 +3,7 @@
 
 #include "typedef.h"
 #include "mem.h"
+#include "debug.h"
 #include <stdio.h>
 #define     MAX_LEN_SEND_COMM2    100
 #define     MAX_LEN_REC_COMM2     100
@@ -19,6 +20,7 @@ typedef struct tagComm2Struct
     unsigned char RecCount;
     unsigned char RecArray[MAX_LEN_REC_COMM2];
 	unsigned char IdleCount;
+    InU8_OutVoid fSendOneByte;
 }Comm2StructType;
 
 

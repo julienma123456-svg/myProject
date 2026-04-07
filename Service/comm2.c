@@ -1,28 +1,53 @@
 #include "comm2.h"
 #include "uart1.h"
-
-//ï¿½ï¿½Ó¡ï¿½ï¿½ï¿½Ô¿Ú£ï¿½Ê¹ï¿½ï¿½ï¿½ï¿½Ô´UART1
-
+//???????????????UART1
+static void Comm2ConfigRxMode(void);
 static xdata Comm2StructType Comm2Struct;
 
-//ï¿½á¹¹ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½
+//????????
 static void Comm2StructInit(void)
 {
+    
     Comm2Struct.ComState = enumIdle;
     Comm2Struct.SendInx = 0;
     Comm2Struct.SendNum = 0;
     Comm2Struct.RecInx = 0;
     Comm2Struct.RecCount = 0;
 	Comm2Struct.IdleCount = 0;
+
+     #ifdef CHANGE_UART_BECAUSEOF_UART3ERR
+    Uart3RegresiterCallback(Comm2SendOneDataOK, Comm2RecOneData);//×¢²á»Øµ÷º¯Êý£¬uart3°ó¶¨comm2 Ö»·¢ËÍÈÕÖ¾
+    Comm2Struct.fSendOneByte = UART3_SendOneData;
+    #else
+    Uart1RegresiterCallback(Comm2SendOneDataOK, Comm2RecOneData);//×¢²á»Øµ÷º¯Êý£¬uart1°ó¶¨comm2 Ö»·¢ËÍÈÕÖ¾
+    Comm2Struct.fSendOneByte = UART1_SendOneData;
+    #endif
+    Comm2ConfigRxMode();	//Ä¬ÈÏÅäÖÃÎª½ÓÊÕÄ£Ê½
 }
 
-//ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½Ö½ï¿½
+//Comm2ÅäÖÃÎª·¢ËÍÄ£Ê½(DEÎª¸ß)
+static void Comm2ConfigTxMode(void)
+{
+    #ifdef CHANGE_UART_BECAUSEOF_UART3ERR
+	GPIO_OutLow(enum485CTRL);//µÍµçÆ½¹âñîµ¼Í¨
+    #endif
+}
+
+//Comm2ÅäÖÃÎª½ÓÊÕÄ£Ê½(DEÎªµÍ)
+static void Comm2ConfigRxMode(void)
+{
+    #ifdef CHANGE_UART_BECAUSEOF_UART3ERR
+	GPIO_OutHigh(enum485CTRL);//¸ßµçÆ½¹âñî²»µ¼Í¨
+    #endif
+}
+
+//??????????
 static void Comm2SendOneData(unsigned char dataIn)
 {
-    UART1_SendOneData(dataIn);
+    Comm2Struct.fSendOneByte(dataIn);
 }
 
-//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½Ö½Ú»Øµï¿½ï¿½ï¿½ï¿½ï¿½(ï¿½É·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð¶Ïµï¿½ï¿½ï¿½)
+//???????????????????(?????????§Ø????)
 void Comm2SendOneDataOK(void)
 {
     unsigned char send = 0;
@@ -34,24 +59,24 @@ void Comm2SendOneDataOK(void)
     }
     else
     {
-        //Comm2Struct.ComState = enumSended;
-		Comm2Struct.ComState = enumIdle;
+        Comm2Struct.ComState = enumSended;
+		// Comm2Struct.ComState = enumIdle;
     }
 }
 
 //========================================================================
-// ï¿½ï¿½ï¿½ï¿½: void   Comm2Init(void)
-// ï¿½ï¿½ï¿½ï¿½: Comm2Initï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
-// ï¿½ï¿½ï¿½ï¿½: none.
-// ï¿½ï¿½ï¿½ï¿½: none.
-// ï¿½æ±¾: V1.0, 2025-6-4
+// ????: void   Comm2Init(void)
+// ????: Comm2Init?????????.
+// ????: none.
+// ????: none.
+// ?·Ú: V1.0, 2025-6-4
 //========================================================================
 void Comm2Init(void)
 {
     Comm2StructInit();
 }
 
-//ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+//???????????
 unsigned char Comm2SendData(unsigned char *dataIn,unsigned char dataLen)
 {
     unsigned char xdata sendLen = 0;
@@ -66,6 +91,7 @@ unsigned char Comm2SendData(unsigned char *dataIn,unsigned char dataLen)
     else
         sendLen = dataLen;
 
+    Comm2ConfigTxMode();	//·¢ËÍÇ°ÏÈÅäÖÃÎª·¢ËÍÄ£Ê½
     MemCopy(Comm2Struct.SendArray,dataIn,sendLen);
     Comm2Struct.SendInx = 0;
     Comm2Struct.SendNum = sendLen;
@@ -75,16 +101,16 @@ unsigned char Comm2SendData(unsigned char *dataIn,unsigned char dataLen)
 	return 1;
 }
 
-//1msï¿½ï¿½ï¿½Úµï¿½ï¿½Ãºï¿½ï¿½ï¿½
+//1ms??????¨²???
 void Comm2Tick(void)
 {
-	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É´ï¿½ï¿½ï¿½
+	//??????????????
 	if(Comm2Struct.ComState == enumReceiving)
 	{
-		//ï¿½Õµï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+		//??????????????
 		Comm2Struct.IdleCount++;
 
-		//ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½Ê±ï¿½ï¿½Ã»ï¿½Õµï¿½ï¿½ï¿½ï¿½Ý£ï¿½ï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+		//?????????????????????????????????
 		if(Comm2Struct.IdleCount >= REC_FRAME_DELAY)
 		{
 			Comm2Struct.RecCount = Comm2Struct.RecInx;
@@ -92,10 +118,16 @@ void Comm2Tick(void)
 			Comm2Struct.ComState = enumReceived;
 		}
 	}
+    //·¢ËÍÊý¾ÝÍê³Éºó£¬ÐèÒªÅäÖÃÎª½ÓÊÕÄ£Ê½(µÈ´ýÊý¾Ý)
+	if(Comm2Struct.ComState == enumSended)
+	{
+		Comm2ConfigRxMode();
+		Comm2Struct.ComState = enumIdle;
+	}
 }
 
 
-//ï¿½ï¿½ï¿½Õµï¿½Ò»ï¿½ï¿½ï¿½Ö½ï¿½
+//???????????
 void Comm2RecOneData(unsigned char recData)
 {
     unsigned char xdata inx = 0;
@@ -104,7 +136,7 @@ void Comm2RecOneData(unsigned char recData)
     Comm2Struct.RecInx++;
 	Comm2Struct.IdleCount = 0;
 
-	//ï¿½ï¿½Ö¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	//??????????
 	if(Comm2Struct.RecInx >= MAX_LEN_REC_COMM2)
 	{
 		Comm2Struct.RecCount = Comm2Struct.RecInx;
@@ -117,22 +149,20 @@ void Comm2RecOneData(unsigned char recData)
 	}
 }
 
-//ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-//unsigned char Comm2GetRecData(unsigned char *dataIn,unsigned char *dataLen)
-//{
-//    unsigned char xdata recLen = 0;
-//    if(dataIn == 0)
-//        return 0;
-//
-//    if(Comm2Struct.ComState != enumReceived)
-//        return 0;
-//
-//    recLen = Comm2Struct.RecCount;
-//    *dataLen = Comm2Struct.RecCount;
-//    MemCopy(dataIn,Comm2Struct.RecArray,recLen);    
-//
-//    Comm2Struct.ComState = enumIdle;
-//
-//	return 1;
-//}
+unsigned char Comm2GetRecData(unsigned char *dataIn,unsigned char *dataLen)
+{
+   unsigned char xdata recLen = 0;
+   if(dataIn == 0)
+       return 0;
 
+   if(Comm2Struct.ComState != enumReceived)
+       return 0;
+
+   recLen = Comm2Struct.RecCount;
+   *dataLen = Comm2Struct.RecCount;
+   MemCopy(dataIn,Comm2Struct.RecArray,recLen);    
+
+   Comm2Struct.ComState = enumIdle;
+
+	return 1;
+}

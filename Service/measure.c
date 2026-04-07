@@ -1,5 +1,5 @@
 #include "measure.h"
-
+#include "delay.h"
 static unsigned char OutPowerFreq = 90;
 static unsigned int tickCount = 0;
 
@@ -46,7 +46,7 @@ static const unsigned short log10_table[256] = {
     1895,1896,1897,1898,1899,1900,1901,1902,1903,1904,1905,1906,1907,1908,1909,1910
 };
 
-static const ntc_table_t ntc_table[] = {
+static const ntc_table_t ntc_table[34] = {
     {3977, -400}, {3937, -350}, {3886, -300}, {3822, -250},
     {3744, -200}, {3649, -150}, {3535, -100}, {3405, -50},
     {3249,    0}, {3077,   50}, {2891,  100}, {2688,  150},
@@ -93,6 +93,8 @@ float pa_calc_return_loss(float pf, float pr)
     if (pr <= 0.0001f)
         return 500;   // 50.0 dB
 
+	if(pr >= pf)
+		return 0;
     // ===== float → 定点（映射到 0~4095）=====
     // 400W → 4095
     pf_i = (unsigned short)(pf * 10.2375f);  // 4095/400 ≈ 10.2375
@@ -185,10 +187,10 @@ static void MeasureAllVal(void)
 	float adcVol = 0.0f;
 	float coeff = 0.0f;
 	//DAC输出使能脚采集
-//	if(GPIO_GetIn(enumPTT) == 0)
-//		MeasureStruct.OutDAC_EnFlag = 1;
-//	else
-//		MeasureStruct.OutDAC_EnFlag = 0;
+	if(GPIO_GetIn(enumPTT) == 0)
+		MeasureStruct.OutDAC_EnFlag = 1;
+	else
+		MeasureStruct.OutDAC_EnFlag = 0;
 	
 	//温度告警脚采集								    
 	if(GPIO_GetIn(enumALARM_T) == 0)
@@ -201,15 +203,16 @@ static void MeasureAllVal(void)
 		adcInx = ADC_ChIndex[i];
 		coeff = VolToAnalogCoeff[i];
 		val = ADC_GetResult(adcInx);
-		//adcVol = (float)val / ADC_MAX_VAL * ADC_REF_VOL;
+		// adcVol = (float)val / ADC_MAX_VAL * ADC_REF_VOL;
 		adcVol = (float)val / ADC_MAX_VAL;
 		MeasureStruct.AD_Val[i] = val; 
-
 		
 		if(i == Analog_TEMP)//温度要特殊处理
 		{
-			float temp = adc_to_temperature(val);
-			MeasureStruct.AnalogVal[i] = temp; // 转成 °C
+			MeasureStruct.AnalogVal[i] = adc_to_temperature(val);
+			
+			// sprintf(pstring,"Temp ADC=%d\t Temp = %.1f C\r\n",val,MeasureStruct.AnalogVal[i]);
+			// PrintfArray(pstring,strlen(pstring));
 		}
 		else if(i == Analog_InPower)//入射功率要校准
 		{
@@ -245,7 +248,6 @@ static void MeasureAllVal(void)
 	}
 	
 	MeasureStruct.lossVal = pa_calc_return_loss(MeasureStruct.AnalogVal[Analog_InPower],MeasureStruct.AnalogVal[Analog_RefPower]);
-
 	//源电压异常告警
 //	if(MeasureStruct.AnalogVal[Analog_50V] < 40)
 //		MeasureStruct.VolAlarmFlag = 1;

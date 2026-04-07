@@ -22,7 +22,13 @@ sbit RB8  = 0x9A;
 sbit TI   = 0x99;
 sbit RI   = 0x98;
 
-void UART1_SendOneData(unsigned char dataIn);
-void UART1_Config(unsigned long baudRate,InVoid_OutVoid fSend,InU8_OutVoid fRec);
+typedef struct UART1Mng
+{
+    InVoid_OutVoid funSendOneDataOk;
+    InU8_OutVoid funRecOneData;
+}uart1_mng_struct;
 
+void UART1_SendOneData(unsigned char dataIn);
+void UART1_Config(unsigned long baudRate);
+void Uart1RegresiterCallback(InVoid_OutVoid fSend,InU8_OutVoid fRec);
 #endif

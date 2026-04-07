@@ -1,7 +1,6 @@
 #include "uart3.h"
 
-static InVoid_OutVoid funSendOneDataOk;
-static InU8_OutVoid funRecOneData;
+uart3_mng_struct gs_uart3Mng = {0, 0};
 
 //========================================================================
 // 函数: void UART3_config(u8 brt)
@@ -12,7 +11,7 @@ static InU8_OutVoid funRecOneData;
 // 日期: 2014-11-28
 // 备注: 
 //========================================================================
-void UART3_Config(unsigned long baudRate,InVoid_OutVoid fSend,InU8_OutVoid fRec)    
+void UART3_Config(unsigned long baudRate)    
 {
 	unsigned long reload = 0;
 	reload = 65536UL - (MAIN_Fosc / 4) / baudRate;
@@ -30,9 +29,12 @@ void UART3_Config(unsigned long baudRate,InVoid_OutVoid fSend,InU8_OutVoid fRec)
 #else
     P_SW2 |= 0x02;      //UART3 switch bit1 to: 1: P5.0 P5.1
 #endif
+}
 
-	funSendOneDataOk = fSend;
-	funRecOneData = fRec;
+void Uart3RegresiterCallback(InVoid_OutVoid fSend,InU8_OutVoid fRec)
+{
+    gs_uart3Mng.funSendOneDataOk = fSend;
+    gs_uart3Mng.funRecOneData = fRec;
 }
 
 //========================================================================
@@ -53,13 +55,15 @@ void UART3_Int (void) interrupt 17
     {
         S3CON &= ~0x01;    //Clear Rx flag
         recData = S3BUF;
-		funRecOneData(recData);
+		if(gs_uart3Mng.funRecOneData != 0)
+            gs_uart3Mng.funRecOneData(recData);
     }
 
     if((S3CON & 0x02) != 0)
     {
         S3CON &= ~0x02;    //Clear Tx flag
-		funSendOneDataOk();
+		if(gs_uart3Mng.funSendOneDataOk != 0)
+            gs_uart3Mng.funSendOneDataOk();
     }
 	EA = 1;     //打开总中断
 }

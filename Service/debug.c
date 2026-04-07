@@ -1,5 +1,6 @@
 #include "debug.h"
 
+char pstring[256] = {0};
 
 //打印一个数组
 void PrintfArray(unsigned char *dataIn,unsigned char dataLen)

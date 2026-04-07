@@ -10,37 +10,36 @@
 void GPIO_Init(void)
 {
 	//准双向口:00
-	P3M1 &= CLEAR_BIT5;   P3M0 &= CLEAR_BIT5;   //P3.5 uart cs
+	P2M1 &= CLEAR_BIT7;   P2M0 &= CLEAR_BIT7;   //P2.7 uart cs
 	
 	P2M1 &= CLEAR_BIT4;   P2M0 &= CLEAR_BIT4;   //P2.4 spi sclk
 	P2M1 &= CLEAR_BIT5;   P2M0 &= CLEAR_BIT5;   //P2.5 spi cs 
 	P2M1 &= CLEAR_BIT3;   P2M0 &= CLEAR_BIT3;   //P2.3 spi data
 	
-	P0M1 &= CLEAR_BIT7;   P0M0 &= CLEAR_BIT7;   //P0.7 PTT
+	P4M1 &= CLEAR_BIT3;   P4M0 &= CLEAR_BIT3;   //P4.3 PTT
 
+	P2M1 &= CLEAR_BIT6;   P2M0 &= CLEAR_BIT6;   //P2.6 射频源控制ONoff
+	P4M1 &= CLEAR_BIT4;   P4M0 &= CLEAR_BIT4;   //P4.4 led
 	//高阻输入:10
-	P0M1 |= SET_BIT6;   P0M0 &= CLEAR_BIT6;   //P0.6 alarm
-	
-	//推挽输出
-	P4M1 &= CLEAR_BIT4;   P4M0 &= SET_BIT4;   //P4.4 射频源控制ONoff
-	P3M1 &= CLEAR_BIT4;   P3M0 &= SET_BIT4;   //P3.4 led
+	P0M1 |= SET_BIT2;   P0M0 &= CLEAR_BIT2;   //P0.2 alarm
 
 	GPIO_OutHigh(enumFREGSWONFF);//默认射频源关闭
+	GPIO_OutHigh(enum485CTRL);//高电平光耦不导通 接受模式
 }
 
 //输出高电平
 void GPIO_OutHigh(enumGPIOName gpioName)
 {
 	if(gpioName == enum485CTRL)
-		P35 = 1;
+		P27 = 1;
 	else if(gpioName == enumSCLK)
 		P24 = 1;
 	else if(gpioName == enumSYNC)
 		P25 = 1;
-	else if(gpioName == enumDIN)
+	else if(gpioName == enumDIN)\
 		P23 = 1;
 	else if(gpioName == enumLED)
-		P34 = 1;
+		P44 = 1;
 //	else if(gpioName == enumLED1)
 //		P42 = 1;
 //	else if(gpioName == enumLED2)
@@ -52,14 +51,14 @@ void GPIO_OutHigh(enumGPIOName gpioName)
 	else if(gpioName == enumPTT)
 		P07 = 1;				
 	else if(gpioName == enumFREGSWONFF)
-		P44 = 1;
+		P26 = 1;
 }
 
 //输出低电平
 void GPIO_OutLow(enumGPIOName gpioName)
 {
 	if(gpioName == enum485CTRL)
-		P35 = 0;
+		P27 = 0;
 	else if(gpioName == enumSCLK)
 		P24 = 0;
 	else if(gpioName == enumSYNC)
@@ -67,7 +66,7 @@ void GPIO_OutLow(enumGPIOName gpioName)
 	else if(gpioName == enumDIN)
 		P25 = 0;
 	else if(gpioName == enumLED)
-		P34 = 0;
+		P44 = 0;
 //	else if(gpioName == enumLED1)
 //		P42 = 0;
 //	else if(gpioName == enumLED2)
@@ -79,7 +78,7 @@ void GPIO_OutLow(enumGPIOName gpioName)
 	else if(gpioName == enumPTT)
 		P07 = 0;				
 	else if(gpioName == enumFREGSWONFF)
-		P44 = 0;					
+		P26 = 0;					
 }
 
 //获取电平状态
@@ -88,11 +87,11 @@ unsigned char GPIO_GetIn(enumGPIOName gpioName)
 	if(gpioName == enumDIN)
 		return P23;
 	else if(gpioName == enumALARM_T)
-		return P06;
+		return P02;
 	else if(gpioName == enumPTT)
 		return P07;
 	else if(gpioName == enumFREGSWONFF)
-		return P44;
+		return P26;
 	return 0xFF;
 }
 

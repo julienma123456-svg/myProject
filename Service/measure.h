@@ -26,7 +26,7 @@
 
 typedef enum
 {
-	Analog_TEMP,
+	Analog_TEMP = 0,
 	Analog_InPower,
 	Analog_RefPower,
 //	Analog_2A,
@@ -41,7 +41,7 @@ typedef struct tagMeasure
 	unsigned char Curr17AlarmFlag;
 	unsigned char Curr2AlarmFlag;
 	unsigned char OverWaveAlarmFlag;
-//	unsigned char OutDAC_EnFlag;
+	unsigned char OutDAC_EnFlag;
 
 	unsigned int  AD_Val[Analog_NUM];
 	float AnalogVal[Analog_NUM];	//–≈∫≈÷µ

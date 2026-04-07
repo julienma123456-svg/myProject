@@ -38,6 +38,10 @@ void OutputPower(float power)
 {
 	unsigned int dac = 0x00;
 	dac = power / MAX_VAL_POWER * MAX_VAL_DAC;
+	if(dac > MAX_VAL_DAC)
+	{
+		dac = MAX_VAL_DAC;
+	}
 	WriteDAC(dac);
 }
 

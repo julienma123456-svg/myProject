@@ -1,9 +1,10 @@
 #include "comm1.h"
 #include "uart3.h"
+#include "debug.h"
 
 //485通信口，使用资源UART3
-
-static Comm1StructType Comm1Struct;
+static void Comm1ConfigRxMode(void);
+static xdata Comm1StructType Comm1Struct;
 
 //结构体初始化
 static void Comm1StructInit(void)
@@ -14,24 +15,36 @@ static void Comm1StructInit(void)
     Comm1Struct.RecInx = 0;
     Comm1Struct.RecCount = 0;
 	Comm1Struct.IdleCount = 0;
+    #ifdef CHANGE_UART_BECAUSEOF_UART3ERR
+    Comm1Struct.fSendOneByte = UART1_SendOneData;
+    Uart1RegresiterCallback(Comm1SendOneDataOK, Comm1RecOneData); //uart1绑定comm1modbus使用
+    #else
+    Comm1Struct.fSendOneByte = UART3_SendOneData;
+    Uart3RegresiterCallback(Comm1SendOneDataOK, Comm1RecOneData); //uatr3绑定comm1
+    #endif
+    Comm1ConfigRxMode();	//默认配置为接收模式
 }
 
 //Comm1配置为发送模式(DE为高)
 static void Comm1ConfigTxMode(void)
 {
-	GPIO_OutLow(enum485CTRL);//低电平光耦导通
+    #ifndef CHANGE_UART_BECAUSEOF_UART3ERR
+    GPIO_OutLow(enum485CTRL);//低电平光耦导通
+    #endif
 }
 
 //Comm1配置为接收模式(DE为低)
 static void Comm1ConfigRxMode(void)
 {
-	GPIO_OutHigh(enum485CTRL);//高电平光耦不导通
+    #ifndef CHANGE_UART_BECAUSEOF_UART3ERR
+     GPIO_OutHigh(enum485CTRL);//高电平光耦不导通   
+    #endif
 }
 
 //发送一个字节
 static void Comm1SendOneData(unsigned char dataIn)
 {
-    UART3_SendOneData(dataIn);
+    Comm1Struct.fSendOneByte(dataIn);
 }
 
 //发送完成一个字节回调函数(由发送完成中断调用)
@@ -60,7 +73,7 @@ void Comm1SendOneDataOK(void)
 //========================================================================
 void Comm1Init(void)
 {
-    Comm1StructInit();
+    Comm1StructInit();   
 }
 
 //发送一个数组
@@ -113,7 +126,6 @@ void Comm1Tick(void)
 		Comm1Struct.ComState = enumIdle;
 	}
 }
-
 
 //接收到一个字节
 void Comm1RecOneData(unsigned char recData)

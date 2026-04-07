@@ -58,7 +58,7 @@
 
 
 #ifdef	DEBUG_ENABLE
-#define		DEBUG_COM1
+// #define		DEBUG_COM1
 #endif
 
 void ModBusService(unsigned char* pdta, unsigned char dataLen);

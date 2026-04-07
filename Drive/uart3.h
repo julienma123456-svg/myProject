@@ -8,14 +8,21 @@
 #include "drive.h"
 
 #define SELECT_P0	  //Rx:P0.0,Tx:P0.1
-//#define SELECT_P5	  //Rx:P5.0,Tx:P5.1
+// #define SELECT_P5	  //Rx:P5.0,Tx:P5.1
 
-//´®¿Ú3¼Ä´æÆ÷
+typedef struct UART3Mng
+{
+    InVoid_OutVoid funSendOneDataOk;
+    InU8_OutVoid funRecOneData;
+}uart3_mng_struct;
+
+
+//ï¿½ï¿½ï¿½ï¿½3ï¿½Ä´ï¿½ï¿½ï¿½
 sfr S3CON = 0xAC;
 sfr S3BUF = 0xAD;
 
 
 void UART3_SendOneData(unsigned char dataIn);
-void UART3_Config(unsigned long baudRate,InVoid_OutVoid fSend,InU8_OutVoid fRec);
-
+void UART3_Config(unsigned long baudRate);
+void Uart3RegresiterCallback(InVoid_OutVoid fSend,InU8_OutVoid fRec);
 #endif

@@ -18,6 +18,7 @@ typedef struct tagComm1Struct
     unsigned char RecCount;
     unsigned char RecArray[MAX_LEN_REC_COMM1];
 	unsigned char IdleCount;
+    InU8_OutVoid fSendOneByte;
 }Comm1StructType;
 
 
@@ -27,6 +28,5 @@ extern void Comm1SendOneDataOK(void);
 extern void Comm1RecOneData(unsigned char recData);
 extern unsigned char Comm1SendData(unsigned char *dataIn,unsigned char dataLen);
 extern unsigned char Comm1GetRecData(unsigned char *dataIn,unsigned char *dataLen);
-
 
 #endif

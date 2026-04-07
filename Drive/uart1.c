@@ -1,7 +1,6 @@
 #include "uart1.h"
 
-static InVoid_OutVoid funS1SendOneDataOk;
-static InU8_OutVoid funS1RecOneData;
+uart1_mng_struct gs_uart1Mng = {0, 0};
 
 //========================================================================
 // 函数: void UART1_config(u8 brt)
@@ -12,7 +11,7 @@ static InU8_OutVoid funS1RecOneData;
 // 日期: 2014-11-28
 // 备注: 
 //========================================================================
-void UART1_Config(unsigned long baudRate,InVoid_OutVoid fSend,InU8_OutVoid fRec)    
+void UART1_Config(unsigned long baudRate)    
 {
 	unsigned long xdata reload = 0;
 	reload = 65536UL - (MAIN_Fosc / 4) / baudRate;
@@ -36,9 +35,12 @@ void UART1_Config(unsigned long baudRate,InVoid_OutVoid fSend,InU8_OutVoid fRec)
     P_SW1 &= 0x3f;
     P_SW1 |= 0x00;      //UART1 switch to, 0x00: P3.0 P3.1, 0x40: P3.6 P3.7, 0x80: P1.6 P1.7, 0xC0: P4.3 P4.4
 //  PCON2 |=  (1<<4);   //内部短路RXD与TXD, 做中继, ENABLE,DISABLE
+}
 
-	funS1SendOneDataOk = fSend;
-	funS1RecOneData = fRec;
+void Uart1RegresiterCallback(InVoid_OutVoid fSend,InU8_OutVoid fRec)
+{
+    gs_uart1Mng.funSendOneDataOk = fSend;
+    gs_uart1Mng.funRecOneData = fRec;
 }
 
 //========================================================================
@@ -59,13 +61,15 @@ void UART1_Int (void) interrupt 4
     {
         SCON &= ~0x01;    //Clear Rx flag
         recData = S1BUF;
-		funS1RecOneData(recData);
+        if(gs_uart1Mng.funRecOneData != 0)
+            gs_uart1Mng.funRecOneData(recData);
     }
 
     if((SCON & 0x02) != 0)
     {
         SCON &= ~0x02;    //Clear Tx flag
-		funS1SendOneDataOk();
+		if(gs_uart1Mng.funSendOneDataOk != 0)
+            gs_uart1Mng.funSendOneDataOk();
     }
 	EA = 1;     //打开总中断
 }

@@ -1,6 +1,14 @@
 #ifndef PROTOCOL_H
 #define PROTOCOL_H
-
+#include "dac7311.h"
+#include "debug.h"
+#include "typedef.h"
+#include "comm1.h"
+#include "modbusCRC.h"
+#include "measure.h"
+#include "version.h"
+#include "config.h"
+#include "adjust.h"
 
 // 定义命令帧相关常量
 #define FRAME_HEADER_1      0xA5

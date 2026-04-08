@@ -24,27 +24,26 @@ VOL_AI_REP,
 VOL_AI_17A,
 };
 
-// log10(x) * 100, x = 1~255
-// 精度约 ±0.2 dB（工程足够）
+// Table: 1000 * log10(x), x = 1 to 256
 static const unsigned short log10_table[256] = {
-    0,
-    0,301,477,602,699,778,845,903,954,1000,1041,1078,1111,1141,1169,
-    1195,1218,1240,1260,1278,1295,1311,1326,1340,1354,1366,1378,1389,1400,1410,1420,
-    1429,1438,1447,1455,1463,1471,1478,1486,1493,1500,1506,1513,1519,1525,1531,1537,
-    1543,1548,1554,1559,1564,1569,1574,1579,1584,1588,1593,1597,1602,1606,1610,1614,
-    1618,1622,1626,1630,1633,1637,1640,1644,1647,1651,1654,1657,1660,1663,1666,1669,
-    1672,1675,1678,1681,1683,1686,1689,1691,1694,1696,1699,1701,1704,1706,1708,1711,
-    1713,1715,1717,1720,1722,1724,1726,1728,1730,1732,1734,1736,1738,1740,1742,1744,
-    1746,1748,1750,1752,1753,1755,1757,1759,1760,1762,1764,1765,1767,1769,1770,1772,
-    1773,1775,1776,1778,1779,1781,1782,1784,1785,1786,1788,1789,1790,1792,1793,1794,
-    1796,1797,1798,1799,1801,1802,1803,1804,1805,1807,1808,1809,1810,1811,1812,1813,
-    1814,1816,1817,1818,1819,1820,1821,1822,1823,1824,1825,1826,1827,1828,1829,1830,
-    1831,1832,1833,1834,1835,1836,1837,1838,1839,1840,1841,1842,1843,1844,1845,1846,
-    1847,1848,1849,1850,1851,1852,1853,1854,1855,1856,1857,1858,1859,1860,1861,1862,
-    1863,1864,1865,1866,1867,1868,1869,1870,1871,1872,1873,1874,1875,1876,1877,1878,
-    1879,1880,1881,1882,1883,1884,1885,1886,1887,1888,1889,1890,1891,1892,1893,1894,
-    1895,1896,1897,1898,1899,1900,1901,1902,1903,1904,1905,1906,1907,1908,1909,1910
+    0, 301, 477, 602, 699, 778, 845, 903, 954, 1000, 1041, 1079, 1114, 1146, 1176, 1204,
+    1230, 1255, 1279, 1301, 1322, 1342, 1362, 1380, 1398, 1415, 1431, 1447, 1462, 1477, 1491, 1505,
+    1519, 1531, 1544, 1556, 1568, 1580, 1591, 1602, 1613, 1623, 1633, 1643, 1653, 1663, 1672, 1681,
+    1690, 1699, 1708, 1716, 1724, 1732, 1740, 1748, 1756, 1763, 1771, 1778, 1785, 1792, 1799, 1806,
+    1813, 1820, 1826, 1833, 1839, 1845, 1851, 1857, 1863, 1869, 1875, 1881, 1886, 1892, 1898, 1903,
+    1908, 1914, 1919, 1924, 1929, 1934, 1940, 1944, 1949, 1954, 1959, 1964, 1968, 1973, 1978, 1982,
+    1987, 1991, 1996, 2000, 2004, 2009, 2013, 2017, 2021, 2025, 2029, 2033, 2037, 2041, 2045, 2049,
+    2053, 2057, 2061, 2064, 2068, 2072, 2076, 2079, 2083, 2086, 2090, 2093, 2097, 2100, 2104, 2107,
+    2111, 2114, 2117, 2121, 2124, 2127, 2130, 2134, 2137, 2140, 2143, 2146, 2149, 2152, 2155, 2158,
+    2161, 2164, 2167, 2170, 2173, 2176, 2179, 2182, 2185, 2188, 2190, 2193, 2196, 2199, 2201, 2204,
+    2207, 2210, 2212, 2215, 2217, 2220, 2223, 2225, 2228, 2230, 2233, 2236, 2238, 2241, 2243, 2246,
+    2248, 2250, 2253, 2255, 2258, 2260, 2262, 2265, 2267, 2270, 2272, 2274, 2277, 2279, 2281, 2283,
+    2286, 2288, 2290, 2292, 2294, 2297, 2299, 2301, 2303, 2305, 2307, 2310, 2312, 2314, 2316, 2318,
+    2320, 2322, 2324, 2326, 2328, 2330, 2332, 2334, 2336, 2338, 2340, 2342, 2344, 2346, 2348, 2350,
+    2352, 2354, 2356, 2358, 2360, 2362, 2364, 2366, 2368, 2369, 2371, 2373, 2375, 2377, 2378, 2380,
+    2382, 2384, 2386, 2387, 2389, 2391, 2393, 2394, 2396, 2398, 2400, 2401, 2403, 2405, 2407, 2408
 };
+
 
 static const ntc_table_t ntc_table[34] = {
     {3977, -400}, {3937, -350}, {3886, -300}, {3822, -250},
@@ -75,59 +74,55 @@ void MeasureInit(void)
 	}
 }
 
-// ===== 主函数 =====
-// 输入：pf/pr（单位：W，范围 0~400）
-// 输出：RL（单位：0.1 dB）
+/**
+ * @brief 纯定点计算 RL (0.1dB 分辨率)
+ * @param pf 入射功率 (W)
+ * @param pr 反射功率 (W)
+ * @return float 返回值 (单位: dB)
+ */
 float pa_calc_return_loss(float pf, float pr)
 {
-    unsigned short pf_i, pr_i;
-    unsigned short idx_pf, idx_pr;
-    unsigned short frac_pf, frac_pr;
-    unsigned short log_pf, log_pr;
-    short rl;
+    unsigned int ratio_fixed; // 放大 16 倍的定点比值
+    unsigned short idx;       // 查表索引
+    unsigned short frac;      // 插值余数
+    unsigned int log_val;     // 插值后的结果 (1000倍)
+    int rl_01db;              // 最终结果 (0.1dB单位)
+	unsigned int base_ratio;
 
-    // ===== 边界保护 =====
-    if (pf <= 0.0f)
-        return 0;
+    // 1. 边界保护
+    if (pf <= 0.0f || pr >= pf) return 0.0f;
+    if (pr <= 0.0001f) return 50.0f;
 
-    if (pr <= 0.0001f)
-        return 500;   // 50.0 dB
+    // 2. 计算比值并转为定点数 (放大16倍，为了匹配你原来的插值逻辑)
+    // ratio = (pf / pr) * 16
+    ratio_fixed = (unsigned int)((pf / pr) * 16.0f);
 
-	if(pr >= pf)
-		return 0;
-    // ===== float → 定点（映射到 0~4095）=====
-    // 400W → 4095
-    pf_i = (unsigned short)(pf * 10.2375f);  // 4095/400 ≈ 10.2375
-    pr_i = (unsigned short)(pr * 10.2375f);
+    // 3. 拆分索引和余数
+    // 索引偏移：因为表里索引0代表比值1，所以要减去16(即比值1.0)
+    if (ratio_fixed < 16) return 0.0f; 
+    
+    base_ratio = ratio_fixed / 16; // 整数比值
+    idx = base_ratio - 1;                       // 查表索引 (比值1对应idx 0)
+    frac = ratio_fixed & 0x0F;                  // 16进制下的余数
 
-    if (pf_i == 0) pf_i = 1;
-    if (pr_i == 0) pr_i = 1;
+    // 4. 防止索引越界 (你的表长256)
+    if (idx >= 254) return 30.0f; // 比值超过255倍，RL通常认为很大了
 
-    // ===== 8bit索引 + 插值 =====
-    idx_pf = pf_i >> 4;
-    frac_pf = pf_i & 0x0F;
+    // 5. 线性插值
+    // log10_table[idx] 是 1000 * log10(x)
+    log_val = log10_table[idx] + 
+              ((log10_table[idx + 1] - log10_table[idx]) * frac >> 4);
 
-    idx_pr = pr_i >> 4;
-    frac_pr = pr_i & 0x0F;
+    // 6. 转换单位
+    // 公式: RL = 10 * log10(ratio)
+    // 此时 log_val 是 1000 * log10(ratio)
+    // 我们要 0.1dB 单位，即 10 * 10 * log10(ratio) = 100 * log10(ratio)
+    // 所以 rl_01db = log_val / 10
+    rl_01db = log_val / 10;
 
-    if (idx_pf == 0) idx_pf = 1;
-    if (idx_pr == 0) idx_pr = 1;
-
-    // ===== 插值 =====
-    log_pf = log10_table[idx_pf] +
-        ((log10_table[idx_pf + 1] - log10_table[idx_pf]) * frac_pf >> 4);
-
-    log_pr = log10_table[idx_pr] +
-        ((log10_table[idx_pr + 1] - log10_table[idx_pr]) * frac_pr >> 4);
-
-    // ===== RL计算 =====
-    rl = (log_pf - log_pr) / 10;   // 转成 0.1dB
-
-    if (rl < 0)
-        rl = 0;
-
-    return (float)rl / 10.0f;
+    return (float)rl_01db / 10.0f;
 }
+
 
 static float adc_to_temperature(unsigned short adc)
 {
@@ -246,8 +241,8 @@ static void MeasureAllVal(void)
 			MeasureStruct.AnalogVal[i] = adcVol * coeff;
 		}
 	}
-	
-	MeasureStruct.lossVal = pa_calc_return_loss(MeasureStruct.AnalogVal[Analog_InPower],MeasureStruct.AnalogVal[Analog_RefPower]);
+	// sprintf(pstring,"Analog_InPower = %.1f\t Analog_RefPower = %.1f\t lossVal = %.1f\t\r\n",MeasureStruct.AnalogVal[Analog_InPower],MeasureStruct.AnalogVal[Analog_RefPower],MeasureStruct.lossVal);
+	// PrintfArray(pstring,strlen(pstring));
 	//源电压异常告警
 //	if(MeasureStruct.AnalogVal[Analog_50V] < 40)
 //		MeasureStruct.VolAlarmFlag = 1;
@@ -331,7 +326,13 @@ float MeasureGetAnalog(enumAnalogIndex index)
 		if(MeasureStruct.AnalogVal[index] < 3)
 			return 0;
 	}
-
+	#ifdef MOCK_DATA_FOR_TEST
+	// 模拟数据，测试用
+	MeasureStruct.AnalogVal[Analog_17A] = 12.35;
+	MeasureStruct.AnalogVal[Analog_InPower] = 102.5;
+	MeasureStruct.AnalogVal[Analog_RefPower] = 23.5;
+	MeasureStruct.lossVal = pa_calc_return_loss(MeasureStruct.AnalogVal[Analog_InPower],MeasureStruct.AnalogVal[Analog_RefPower]);
+	#endif
 	return MeasureStruct.AnalogVal[index];	
 }
 
@@ -370,12 +371,12 @@ void RefreshOutPowerFreq(unsigned char ctrInx)
 //[110,125]对应0
 static unsigned char GetInPowerAdjInx(void)
 {
-	if(OutPowerFreq < 90)
+	//if(OutPowerFreq < 90)
 		return 0;
-	else if(OutPowerFreq < 110)
-		return 1;
-	else
-		return 2;
+	// else if(OutPowerFreq < 110)
+	// 	return 1;
+	// else
+	// 	return 2;
 }
 
 

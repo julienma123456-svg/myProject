@@ -7,7 +7,10 @@
 #include "version.h"
 #include <stdio.h>
 #include <string.h>
+
 #define CHANGE_UART_BECAUSEOF_UART3ERR  1
+#define MOCK_DATA_FOR_TEST 1
+
 
 extern char pstring[256];
 

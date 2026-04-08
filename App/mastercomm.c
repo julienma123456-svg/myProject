@@ -180,36 +180,47 @@ static void handle_control_command(unsigned char* pdta, unsigned char length)
 	float outDAC = 0.0;
     if(length != FUNC_CODE_CONTROL_LEN)
     {
-        //DEBUG_PRINT("控制命令长度不足\n");
+        sprintf(pstring,"控制命令长度不足\r\n");
+        PrintfArray(pstring,strlen(pstring));
         return;
     }
     if(pdta[6] == 0x00)
     {
         GPIO_OutHigh(enumFREGSWONFF);
+        sprintf(pstring,"关闭PA\r\n");
+        PrintfArray(pstring,strlen(pstring));
     }
     else if(pdta[6] == 0x01)
     {
         GPIO_OutLow(enumFREGSWONFF);
+        sprintf(pstring,"打开PA\r\n");
+        PrintfArray(pstring,strlen(pstring));
     }
     else
     {
-        //DEBUG_PRINT("参数超出范围: %02X\n", pdta[6]);
+        sprintf(pstring,"参数超出范围: %02X\r\n", pdta[6]);
+        PrintfArray(pstring,strlen(pstring));
         return;
     }
     gear = pdta[7];  // 第8字节 档位 (10W单位，0x00-0x0A)
     level = pdta[8]; // 第9字节 级别 (0.1W单位，0x00-0x0F)
     power = gear * 10.0 + level * 0.1;  // PA功率 = 档位*10W + 级别*0.1W
-    //DEBUG_PRINT("设置PA功率: 档位=%02X, 级别=%02X, 功率=%.1f W\n", gear, level, power);
+    sprintf(pstring,"设置PA功率: 档位=%02X, 级别=%02X, 功率=%.1f W\r\n", gear, level, power);
+    PrintfArray(pstring,strlen(pstring));
     outDAC = GetAdjustResult(enum75MHzPower,power,&err);
 	if(!err)
 	{
 		//有校准数据，校准成功则输出DAC值
 		WriteDAC(outDAC);
+        sprintf(pstring,"校准输出：%.1f\r\n", outDAC);
+        PrintfArray(pstring,strlen(pstring));
 	}
 	else
 	{
 		//校准失败则输出功率(按功率等比例输出DAC)
 		OutputPower((float)power);
+        sprintf(pstring,"校准失败，输出：%.1f\r\n", power);
+        PrintfArray(pstring,strlen(pstring));
 	}
     //频率默认915MHZ 不处理
     //预留不处理
@@ -223,7 +234,7 @@ static void handle_control_command(unsigned char* pdta, unsigned char length)
 static void handle_query_command(unsigned char* pdta, unsigned char length) {
     // 查询命令的长度应该固定，不需要严格检查（取决于协议）
     // if(length < MINIMUM_FRAME_LENGTH) {
-    //     //DEBUG_PRINT("查询命令长度不足\n");
+    //     //DEBUG_PRINT("查询命令长度不足\r\n");
     //     return;
     // }
     unsigned char tx_buf[32];
@@ -241,7 +252,8 @@ unsigned char len = 0;
 	//回复格式： A5A5 + 帧长+ B1 + 00 + 7D +1+ CRC校验
     if(length != FUNC_CODE_RESET_LEN)
     {
-        //DEBUG_PRINT("复位命令长度不足\n");
+        sprintf(pstring,"复位命令长度不足\r\n");
+        PrintfArray(pstring,strlen(pstring));
         return;
     }
     
@@ -252,34 +264,40 @@ unsigned char len = 0;
 }
 
 // 处理接收到的帧数据
-static void process_frame(unsigned char* received_data, unsigned char length) {
+static void process_frame(unsigned char* received_data, unsigned char length) 
+{
   unsigned char frame_length = 0;
-unsigned char crc = 0;  
+    unsigned char crc = 0;  
 	unsigned char func_code = 0;
 	// 最小长度检查：帧头(2) + 长度(1) + 地址(1) + 类型(1) + 功能码(1) + CRC(1) = 7字节
     if (length < 7) {
-        //DEBUG_PRINT("帧长度过短: %d\n", length);
+        sprintf(pstring,"帧长度过短: %d\r\n", length);
+        PrintfArray(pstring,strlen(pstring));
         return;
     }
     
-    if (received_data[0] == FRAME_HEADER_1 && received_data[1] == FRAME_HEADER_2) {
+    if (received_data[0] == FRAME_HEADER_1 && received_data[1] == FRAME_HEADER_2) 
+    {
          frame_length = received_data[2];
         if(frame_length > length) 
         {
-            //DEBUG_PRINT("帧长度不匹配: %d\n", frame_length);
+            sprintf(pstring,"帧长度不匹配: %d\r\n", frame_length);
+            PrintfArray(pstring,strlen(pstring));
             return;
         }
         crc = received_data[frame_length - 1];
         // CRC 校验
-        if (calculate_crc(received_data, frame_length - 1) == crc) {
+        if (calculate_crc(&(received_data[2]), frame_length - 3) == crc) {
             if(received_data[3] != DEVICE_ADDRESS) {
-                //DEBUG_PRINT("地址不匹配: %02X\n", received_data[3]);
+                sprintf(pstring,"地址不匹配: %02X\r\n", received_data[3]);
+                PrintfArray(pstring,strlen(pstring));
                 return;
             }
             if(received_data[4] != FRAME_TYPE_DATA
                 && received_data[4] != FRAME_TYPE_CMD) { // 这里假设帧类型为0x80或0x00
-                //DEBUG_PRINT("帧类型不匹配: %02X\n", received_data[4]);
-                return;
+                sprintf(pstring,"帧类型不匹配: %02X\r\n", received_data[4]);
+                PrintfArray(pstring,strlen(pstring));
+              return;
             }
             // 根据功能码处理不同的命令
             func_code = received_data[5];
@@ -294,14 +312,17 @@ unsigned char crc = 0;
                     handle_reset_command(received_data, frame_length);
                     break;
                 default:
-                    //DEBUG_PRINT("未知功能码: %02X\n", func_code);
+                    sprintf(pstring,"未知功能码: %02X\r\n", func_code);
+                    PrintfArray(pstring,strlen(pstring));
                     break;
             }
         } else {
-            //DEBUG_PRINT("CRC校验失败\n");
+            sprintf(pstring,"CRC校验失败\r\n");
+            PrintfArray(pstring,strlen(pstring));
         }
     } else {
-        //DEBUG_PRINT("无效的帧头\n");
+        sprintf(pstring,"无效的帧头\r\n");
+        PrintfArray(pstring,strlen(pstring));
     }
 }
 
@@ -318,8 +339,6 @@ void MasterCommService(unsigned char *pdta, unsigned char dataLen)
 {
     if(pdta == 0 || dataLen == 0)
         return;
-	
-    PrintfArray(pdta,dataLen);
 	process_frame(pdta, dataLen);
 }
 

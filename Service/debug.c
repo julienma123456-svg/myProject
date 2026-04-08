@@ -1,9 +1,9 @@
 #include "debug.h"
 
-char pstring[256] = {0};
+char xdata pstring[256] = {0};
 
 //打印一个数组
-void PrintfArray(unsigned char *dataIn,unsigned char dataLen)
+void PrintfArray(unsigned char xdata *dataIn,unsigned char dataLen)
 {
 	Comm2SendData(dataIn,dataLen);	
 }

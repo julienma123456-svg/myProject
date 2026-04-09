@@ -309,12 +309,12 @@
           </Target51Misc>
           <C51>
             <RegisterColoring>0</RegisterColoring>
-            <VariablesInOrder>0</VariablesInOrder>
+            <VariablesInOrder>1</VariablesInOrder>
             <IntegerPromotion>1</IntegerPromotion>
             <uAregs>0</uAregs>
             <UseInterruptVector>1</UseInterruptVector>
             <Fuzzy>3</Fuzzy>
-            <Optimize>8</Optimize>
+            <Optimize>4</Optimize>
             <WarningLevel>2</WarningLevel>
             <SizeSpeed>1</SizeSpeed>
             <ObjectExtend>1</ObjectExtend>

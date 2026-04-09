@@ -1,9 +1,10 @@
 #include "debug.h"
 
-char xdata pstring[256] = {0};
+
+char* pstring = "deal data frame\r\n";
 
 //打印一个数组
-void PrintfArray(unsigned char xdata *dataIn,unsigned char dataLen)
+void PrintfArray(unsigned char *dataIn,unsigned char dataLen)
 {
 	Comm2SendData(dataIn,dataLen);	
 }

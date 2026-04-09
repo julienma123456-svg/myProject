@@ -28,6 +28,6 @@ void Comm2Init(void);
 void Comm2Tick(void);
 void Comm2SendOneDataOK(void);
 void Comm2RecOneData(unsigned char recData);
-unsigned char Comm2SendData(unsigned char *dataIn,unsigned char dataLen);
+unsigned char Comm2SendData(unsigned char xdata *dataIn,unsigned char dataLen);
 unsigned char Comm2GetRecData(unsigned char *dataIn,unsigned char *dataLen);
 #endif

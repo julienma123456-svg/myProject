@@ -20,7 +20,7 @@ void Timer0_IntService(void);
 void Timer0_Service(void);
 
 unsigned char recLen = 0;
-unsigned char xdata recArray[256] = {0};
+unsigned char xdata  recArray[256] = {0};
 
 static void DataDistributionComm1(void)
 {
@@ -30,9 +30,9 @@ static void DataDistributionComm1(void)
 		{
 			return;
 		}
-		PrintfArray(recArray,recLen);
 		if(IsMasterCommFrame(recArray[0], recArray[1]) == 1)
 		{
+			PrintfArray(recArray,recLen);
 			MasterCommService(recArray, recLen);
 		}
 		else
@@ -47,6 +47,7 @@ void main(void)
 {
 	char i = 0;
 	char adcInx = 0;
+	//AUXR &= ~0x02; // 确保 EXTRAM 位为 0，选择访问内部 8K 扩展 RAM
     DriveInit();
 	EnableInt();
 	//配置定时器0，每1ms中断一次

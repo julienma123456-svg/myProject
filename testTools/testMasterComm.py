@@ -144,7 +144,7 @@ def parse_frame(data):
 
 # ================= ²âÊÔÁ÷³Ì =================
 def main():
-    ser = serial.Serial("COM9", 9600, timeout=1)
+    ser = serial.Serial("COM5", 9600, timeout=1)
 
     # ---- ²éÑ¯ ----
     frame = build_query()

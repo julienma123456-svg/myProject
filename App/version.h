@@ -6,7 +6,7 @@
 #define __USEMODBUS_SERVICE__
 
 // 如需关闭全部调试输出，也可以注释掉下一行
-#define DEBUG_ENABLE//日志打印开关
+// #define DEBUG_ENABLE//日志打印开关
 
 #ifdef DEBUG_ENABLE
 // 1）仿真输出（Keil Simulator）：打开 USE_SIMULATOR
@@ -18,6 +18,6 @@
 
 //当前版本为1.10
 #define		SW_VER_HIGH				0x01
-#define		SW_VER_LOW				0x01
+#define		SW_VER_LOW				0x02
 
 #endif

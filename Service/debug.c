@@ -6,7 +6,7 @@ char* pstring = "deal data frame\r\n";
 //打印一个数组
 void PrintfArray(unsigned char *dataIn,unsigned char dataLen)
 {
-	Comm2SendData(dataIn,dataLen);	
+	// Comm2SendData(dataIn,dataLen);	
 }
 
 //打印AD采样结果

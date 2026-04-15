@@ -253,6 +253,7 @@ float GetAdjustResult(enumAdjustIndex inx,unsigned int input,char *err)
 	}
 
 	arrayLen = sizeof(AdjustData[0].Point) / sizeof(AdjustData[0].Point[0]);
+	pointNum = arrayLen;
 	//统计有多少个校准点(0xFFFF表示没有校准)
 	for(i = 0;i < arrayLen;i++)
 	{

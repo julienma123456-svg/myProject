@@ -32,7 +32,7 @@ static void DataDistributionComm1(void)
 		}
 		if(IsMasterCommFrame(recArray[0], recArray[1]) == 1)
 		{
-			PrintfArray(recArray,recLen);
+			// PrintfArray(recArray,recLen);
 			MasterCommService(recArray, recLen);
 		}
 		else
@@ -53,7 +53,7 @@ void main(void)
 	//配置定时器0，每1ms中断一次
 	Timer0_Init(US2RELOAD(1000),Timer0_IntService);
 
-	UART3_Config(9600);
+	UART3_Config(115200);
 	UART1_Config(9600);
 
 	Comm1Init();   //Comm1初始化

@@ -2,31 +2,47 @@
 
 static unsigned int OutputDAC = 0x00;
 
+static void delay_us(char us)
+{
+     int i;
+     do{
+          i = 5;
+          while(--i);   //10T per loop
+     }while(--us);
+}
+
 //向DAC7311写数据
 void  WriteDAC(unsigned int dacData)
 {
 	unsigned char i;
 	unsigned int temp;
 
-	dacData = dacData & 0x0FFF;
+	dacData = dacData & 0x0FFF;//只有12位有效
 	OutputDAC = dacData;
+	
+	// temp = dacData << 2;
 	temp = dacData << 2;
 	GPIO_OutHigh(enumSYNC);
 	;;;
 	;;;
 	;;;
+	delay_us(2);
 	GPIO_OutLow(enumSYNC);
 	for(i = 0;i < 16;i++)
 	{
+		delay_us(1);
 		GPIO_OutHigh(enumSCLK);
+		delay_us(1);
 		if(temp & 0x8000)
 			GPIO_OutHigh(enumDIN);
 		else
 		{
 			GPIO_OutLow(enumDIN);
 		}
+		delay_us(1);
 		;;;
 		GPIO_OutLow(enumSCLK);
+		delay_us(1);
 		;;;
 		temp = temp << 1;		
 	}
@@ -74,6 +90,8 @@ void DAC7311Tick(void)
 		DacTick = 0;
 	}
 }
+
+
 
 /*
 //向DAC7311写数据

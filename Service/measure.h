@@ -17,6 +17,7 @@
 #define		VOL_AI_REP		400	//5V对应400W
 #define		VOL_AI_2A		(2 * 5 / 1)		//1V对应2A
 #define		VOL_AI_17A		(17.0f * 5 / 3)	//3V对应17A
+#define		VOL_AI_50V		(16.0f*5)
 
 // 热敏电阻的常量（根据你的热敏电阻具体参数进行调整）
 #define R4 10000            // 固定电阻值（单位：欧姆）
@@ -24,12 +25,15 @@
 #define ADC_MAX 4095        // ADC最大值
 #define B_FACTOR 3950              // 热敏电阻B系数（根据数据手册提供）
 
+#define VOLT_HIGH_ALM 1	//源电压过高
+#define VOLT_LOW_ALM  2	//源电压过低
+
 typedef enum
 {
 	Analog_TEMP = 0,
 	Analog_InPower,
 	Analog_RefPower,
-//	Analog_2A,
+	Analog_50V,
 	Analog_17A,
 	Analog_NUM,
 }enumAnalogIndex;

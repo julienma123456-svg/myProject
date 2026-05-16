@@ -1,12 +1,13 @@
 #include "adc.h"
 
-//ADC0功能：50V检测
-//ADC1功能：入射功率检测
-//ADC2功能：反射功率检测
+//ADC0功能：温度检测
+//ADC1功能：反射功率检测
+//ADC2功能：入射功率检测
+//ADC3功能：50V电压检测
 //ADC4功能：17A电流检测
 
-//采集通道P1.0 P1.1 P1.2 P1.4
-const unsigned char xdata ADC_ChVal[ADC_NUM] = {0,1,2,4};
+//采集通道P1.0 P1.1 P1.2 P1.3 P1.4
+const unsigned char xdata ADC_ChVal[ADC_NUM] = {0,1,2,3,4};
 
 unsigned char ADC_ChIndex = 0; 
 unsigned int ADC_Result[ADC_NUM] = {0};
@@ -14,8 +15,8 @@ unsigned int ADC_Result[ADC_NUM] = {0};
 //ADC初始化(采集一个数据需要32*16/375ms = 1.36ms)
 void ADC_Init(void)
 {
-	//设置 P1.0 P1.1 P1.2 P1.4为 ADC 输入口
-	P1M1 |= 0x17;   P1M0 &= 0x00;   //设置 ADC 输入口
+	//设置 P1.0 P1.1 P1.2 P1.3 P1.4为 ADC 输入口
+	P1M1 |= 0x1F;   P1M0 &= 0x00;   //设置 ADC 输入口
 
 	EnableXdata();
 	ADCTIM = 0x3F;		//0 01 11111(采样时间为32个周期) 

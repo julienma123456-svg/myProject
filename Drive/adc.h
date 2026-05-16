@@ -9,7 +9,7 @@ typedef enum
 	ADC0 = 0,
 	ADC1,
 	ADC2,
-//	ADC3,
+	ADC3,
 	ADC4,
 	ADC_NUM,
 };

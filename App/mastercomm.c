@@ -161,6 +161,9 @@ static void update_packdata(PA_Data_t *pdta)
     pdta->temperature = MeasureGetAnalog(Analog_TEMP); // 实际温度
     pdta->fwd_power = MeasureGetAnalog(Analog_InPower); // 正向功率
     pdta->rev_power = MeasureGetAnalog(Analog_RefPower); // 反向功率
+    #ifdef MOCK_DATA_FOR_TEST
+    pdta->rev_power = MeasureGetAnalog(Analog_50V); // 反向功率
+    #endif
     pdta->return_loss = getReturnLoss(); // 回波损耗
     pdta->freq = 0x00;
     pdta->reserved = 0x13; // 预留
@@ -208,7 +211,11 @@ static void handle_control_command(unsigned char* pdta, unsigned char length)
     // sprintf(pstring,"设置PA功率: 档位=%02X, 级别=%02X, 功率=%.1f W\r\n", gear, level, power);
     // PrintfArray(pstring,strlen(pstring));
     outDAC = GetAdjustResult(enum75MHzPower,power,&err);
-	if(!err)
+    #ifdef MOCK_DATA_FOR_TEST 1
+	if(0)
+    #else
+    if(!err)
+    #endif
 	{
 		//有校准数据，校准成功则输出DAC值
 		WriteDAC(outDAC);
@@ -216,7 +223,7 @@ static void handle_control_command(unsigned char* pdta, unsigned char length)
         // PrintfArray(pstring,strlen(pstring));
 	}
 	else
-	{
+	{++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		//校准失败则输出功率(按功率等比例输出DAC)
 		OutputPower((float)power);
         // sprintf(pstring,"校准失败，输出：%.1f\r\n", power);
@@ -248,6 +255,7 @@ static void handle_query_command(unsigned char* pdta, unsigned char length) {
 // 复位命令处理
 static void handle_reset_command(unsigned char* pdta, unsigned char length) {
     unsigned char len = 0;	
+    unsigned char i = 0;	
 	//回复格式： A5A5 + 帧长+ B1 + 00 + 7D +1+ CRC校验
     if(length != FUNC_CODE_RESET_LEN)
     {
@@ -255,11 +263,13 @@ static void handle_reset_command(unsigned char* pdta, unsigned char length) {
         //PrintfArray(pstring,strlen(pstring));
         return;
     }
-    
+    GPIO_OutHigh(enumFREGSWONFF);
+    //有校准数据，校准成功则输出DAC值
+	WriteDAC(0x00);
     memset(tx_buf, 0, sizeof(tx_buf));
     len = PA_BuildResetFrame(tx_buf);
     Comm1SendData(tx_buf, len);
-    Trap(); // 复位设备
+    // Trap(); // 复位设备
 }
 
 // 处理接收到的帧数据

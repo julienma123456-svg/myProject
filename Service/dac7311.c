@@ -6,7 +6,7 @@ static void delay_us(char us)
 {
      int i;
      do{
-          i = 5;
+          i =100;
           while(--i);   //10T per loop
      }while(--us);
 }
@@ -17,37 +17,31 @@ void  WriteDAC(unsigned int dacData)
 	unsigned char i;
 	unsigned int temp;
 
-	dacData = dacData & 0x0FFF;//只有12位有效
+	dacData = dacData & 0x0FFF;
 	OutputDAC = dacData;
-	
-	// temp = dacData << 2;
 	temp = dacData << 2;
 	GPIO_OutHigh(enumSYNC);
 	;;;
 	;;;
 	;;;
-	delay_us(2);
 	GPIO_OutLow(enumSYNC);
 	for(i = 0;i < 16;i++)
 	{
-		delay_us(1);
 		GPIO_OutHigh(enumSCLK);
-		delay_us(1);
 		if(temp & 0x8000)
 			GPIO_OutHigh(enumDIN);
 		else
 		{
 			GPIO_OutLow(enumDIN);
 		}
-		delay_us(1);
 		;;;
 		GPIO_OutLow(enumSCLK);
-		delay_us(1);
 		;;;
 		temp = temp << 1;		
 	}
 	GPIO_OutHigh(enumSYNC);	
 }
+
 
 //输出功率
 void OutputPower(float power)

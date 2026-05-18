@@ -62,9 +62,9 @@ void GPIO_OutLow(enumGPIOName gpioName)
 	else if(gpioName == enumSCLK)
 		P24 = 0;
 	else if(gpioName == enumSYNC)
-		P23 = 0;
-	else if(gpioName == enumDIN)
 		P25 = 0;
+	else if(gpioName == enumDIN)
+		P23 = 0;
 	else if(gpioName == enumLED)
 		P44 = 0;
 //	else if(gpioName == enumLED1)

@@ -253,7 +253,8 @@ void PushRunInfo(unsigned char *outData,unsigned char *dataLen)
 	outData[inx++] = 0;
 	outData[inx++] = MeasureGetAlarmFlag();	
 	//50V
-	av = 50 * 1000;
+	analog = MeasureGetAnalog(Analog_50V);
+	av = analog * 1000;
 	outData[inx++] = (av >> 8);
 	outData[inx++] = (av & 0xFF);
 	//17AµçÁ÷

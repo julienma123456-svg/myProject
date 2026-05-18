@@ -211,11 +211,7 @@ static void handle_control_command(unsigned char* pdta, unsigned char length)
     // sprintf(pstring,"设置PA功率: 档位=%02X, 级别=%02X, 功率=%.1f W\r\n", gear, level, power);
     // PrintfArray(pstring,strlen(pstring));
     outDAC = GetAdjustResult(enum75MHzPower,power,&err);
-    #ifdef MOCK_DATA_FOR_TEST 1
-	if(0)
-    #else
     if(!err)
-    #endif
 	{
 		//有校准数据，校准成功则输出DAC值
 		WriteDAC(outDAC);
@@ -223,7 +219,7 @@ static void handle_control_command(unsigned char* pdta, unsigned char length)
         // PrintfArray(pstring,strlen(pstring));
 	}
 	else
-	{++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	{
 		//校准失败则输出功率(按功率等比例输出DAC)
 		OutputPower((float)power);
         // sprintf(pstring,"校准失败，输出：%.1f\r\n", power);

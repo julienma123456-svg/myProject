@@ -70,16 +70,15 @@ def build_control(onoff, power):
 
     # ? 必须填满长度=13
     payload = [
-        0x00,       # 填充 (对应pdta[6]偏移对齐)
         onoff,      # pdta[6]
         gear,       # pdta[7]
         level       # pdta[8]
     ]
 
     # 填充到满足长度
-    while len(payload) < (13 - 7):  # 总长13 - 固定头7 = payload长度6
+    while len(payload) < (5):  # 总长13 - 固定头7 = payload长度6
         payload.append(0x00)
-
+    payload.append(0x0c)
     return build_frame(FUNC_CONTROL, payload)
 
 
@@ -144,26 +143,26 @@ def parse_frame(data):
 
 # ================= 测试流程 =================
 def main():
-    ser = serial.Serial("COM5", 9600, timeout=1)
+    ser = serial.Serial("COM5", 115200, timeout=1)
 
-    # ---- 查询 ----
-    frame = build_query()
-    print("发送 QUERY:", frame.hex())
-    ser.write(frame)
-    time.sleep(0.2)
-    parse_frame(ser.read(64))
+    # # ---- 查询 ----
+    # frame = build_query()
+    # print("发送 QUERY:", frame.hex())
+    # ser.write(frame)
+    # time.sleep(0.2)
+    # parse_frame(ser.read(64))
 
     # ---- 控制 ----
-    frame = build_control(onoff=0, power=23.4)
+    frame = build_control(onoff=1, power=120)
     print("发送 CONTROL:", frame.hex())
     ser.write(frame)
     time.sleep(0.2)
     parse_frame(ser.read(64))
 
-    # ---- 复位 ----
-    frame = build_reset()
-    print("发送 RESET:", frame.hex())
-    ser.write(frame)
+    # # ---- 复位 ----
+    # frame = build_reset()
+    # print("发送 RESET:", frame.hex())
+    # ser.write(frame)
 
     ser.close()
 

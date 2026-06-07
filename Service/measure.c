@@ -18,8 +18,8 @@ ADC4,
 static float VolToAnalogCoeff[Analog_NUM] = 
 {
 VOL_AI_TEMP,
-VOL_AI_INP,
 VOL_AI_REP,
+VOL_AI_INP,
 VOL_AI_50V,
 VOL_AI_17A,
 };

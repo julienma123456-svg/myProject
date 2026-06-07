@@ -18,6 +18,6 @@
 
 //当前版本为1.10
 #define		SW_VER_HIGH				0x01
-#define		SW_VER_LOW				0x02
+#define		SW_VER_LOW				0x03
 
 #endif

@@ -18,8 +18,11 @@ void GPIO_Init(void)
 	
 	P4M1 &= CLEAR_BIT3;   P4M0 &= CLEAR_BIT3;   //P4.3 PTT
 
-	P2M1 &= CLEAR_BIT6;   P2M0 &= CLEAR_BIT6;   //P2.6 射频源控制ONoff
+	// P2M1 &= CLEAR_BIT6;   P2M0 &= CLEAR_BIT6;   //P2.6 射频源控制ONoff
 	P4M1 &= CLEAR_BIT4;   P4M0 &= CLEAR_BIT4;   //P4.4 led
+	//推挽输出
+	P2M1 &= CLEAR_BIT6;   P2M0 |= SET_BIT6;   //P2.6 射频源控制ONoff
+
 	//高阻输入:10
 	P0M1 |= SET_BIT2;   P0M0 &= CLEAR_BIT2;   //P0.2 alarm
 
@@ -65,6 +68,7 @@ void GPIO_OutLow(enumGPIOName gpioName)
 		P25 = 0;
 	else if(gpioName == enumDIN)
 		P23 = 0;
+	
 	else if(gpioName == enumLED)
 		P44 = 0;
 //	else if(gpioName == enumLED1)

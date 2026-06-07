@@ -31,8 +31,8 @@
 typedef enum
 {
 	Analog_TEMP = 0,
-	Analog_InPower,
 	Analog_RefPower,
+	Analog_InPower,
 	Analog_50V,
 	Analog_17A,
 	Analog_NUM,

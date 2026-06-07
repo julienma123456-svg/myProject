@@ -265,7 +265,7 @@ static void handle_reset_command(unsigned char* pdta, unsigned char length) {
     memset(tx_buf, 0, sizeof(tx_buf));
     len = PA_BuildResetFrame(tx_buf);
     Comm1SendData(tx_buf, len);
-    // Trap(); // 复位设备
+    //Trap(); // 复位设备
 }
 
 // 处理接收到的帧数据

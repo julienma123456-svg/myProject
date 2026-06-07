@@ -617,11 +617,13 @@ void OutputPowerEn(u8 *inData,u8 *outData,unsigned char *dataLen)
 
 	if(inData[8] != 0)
 	{
-		GPIO_OutLow(enumPTT);	   //低电平为使能
+		// GPIO_OutLow(enumPTT);	   //低电平为使能
+		GPIO_OutLow(enumFREGSWONFF);
 	}
 	else
 	{
-		GPIO_OutHigh(enumPTT);
+		GPIO_OutHigh(enumFREGSWONFF);
+		// GPIO_OutHigh(enumPTT);
 	}
 
 	*dataLen = inx;

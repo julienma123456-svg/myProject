@@ -50,10 +50,11 @@ void main(void)
 	//AUXR &= ~0x02; // 确保 EXTRAM 位为 0，选择访问内部 8K 扩展 RAM
     DriveInit();
 	EnableInt();
+	WriteDAC(0x00);
 	//配置定时器0，每1ms中断一次
 	Timer0_Init(US2RELOAD(1000),Timer0_IntService);
 
-	UART3_Config(115200);
+	UART3_Config(9600);
 	UART1_Config(9600);
 
 	Comm1Init();   //Comm1初始化
@@ -63,6 +64,7 @@ void main(void)
 	PowerOnFlash();
 	WatchDogInit(enumReset1050ms);
 	LoadAdjustData();
+	
 	while(1)
 	{
 		

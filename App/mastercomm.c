@@ -179,8 +179,10 @@ static void handle_control_command(unsigned char* pdta, unsigned char length)
 	unsigned char gear = 0;
 	unsigned char level = 0;
 	unsigned char len = 0;
-	float power = 0.0;
-	float outDAC = 0.0;
+	
+	unsigned int  outDAC = 0.0;
+    unsigned int u16power = 0x00;
+    float power = 0.0;
     if(length != FUNC_CODE_CONTROL_LEN)
     {
         //sprintf(pstring,"控制命令长度不足\r\n");
@@ -205,12 +207,13 @@ static void handle_control_command(unsigned char* pdta, unsigned char length)
         // PrintfArray(pstring,strlen(pstring));
         return;
     }
-    gear = pdta[7];  // 第8字节 档位 (10W单位，0x00-0x0A)
-    level = pdta[8]; // 第9字节 级别 (0.1W单位，0x00-0x0F)
+    gear = pdta[8];  // 第8字节 档位 (10W单位，0x00-0x0A)
+    level = pdta[7]; // 第9字节 级别 (0.1W单位，0x00-0x0F)
     power = gear * 10.0 + level * 0.1;  // PA功率 = 档位*10W + 级别*0.1W
+    u16power = (unsigned int)(power * 100.0 + 0.1f); // 转换为0.01W单位的整数
     // sprintf(pstring,"设置PA功率: 档位=%02X, 级别=%02X, 功率=%.1f W\r\n", gear, level, power);
     // PrintfArray(pstring,strlen(pstring));
-    outDAC = GetAdjustResult(enum75MHzPower,power,&err);
+    outDAC = GetAdjustResult(enum75MHzPower,u16power,&err);
     if(!err)
 	{
 		//有校准数据，校准成功则输出DAC值
@@ -221,7 +224,7 @@ static void handle_control_command(unsigned char* pdta, unsigned char length)
 	else
 	{
 		//校准失败则输出功率(按功率等比例输出DAC)
-		OutputPower((float)power);
+		OutputPower(power);
         // sprintf(pstring,"校准失败，输出：%.1f\r\n", power);
         // PrintfArray(pstring,strlen(pstring));
 	}

@@ -159,7 +159,7 @@ static unsigned int pa_calc_vswr_fixed_int(float pf, float pr) {
     unsigned long numerator, denominator;
 
     // 边界保护
-    if (pf <= 0.0f) return 0;
+    if (pf <= 5.0f) return 105;
     if (pr <= 0.0f) return 100;      // 1.00
     if (pr >= pf)  return 65535;     // 表示无穷大（VSWR > 655.35）
 
@@ -271,12 +271,6 @@ static void MeasureAllVal(void)
 		MeasureStruct.OutDAC_EnFlag = 1;
 	else
 		MeasureStruct.OutDAC_EnFlag = 0;
-	
-	//温度告警脚采集								    
-	if(GPIO_GetIn(enumALARM_T) == 0)
-		MeasureStruct.TempAlarmFlag = 1;
-	else
-		MeasureStruct.TempAlarmFlag = 0;
 		
 	for(i = 0;i < Analog_NUM;i++)
 	{
@@ -355,11 +349,17 @@ static void MeasureAllVal(void)
 //		MeasureStruct.Curr2AlarmFlag = 0;
 		
 	//驻波过大告警
-	if(MeasureStruct.AnalogVal[Analog_InPower] < 
-						MeasureStruct.AnalogVal[Analog_RefPower] * 5)
+	if(MeasureStruct.AnalogVal[Analog_InPower] >= 10
+		&& (MeasureStruct.AnalogVal[Analog_InPower] < MeasureStruct.AnalogVal[Analog_RefPower] * 5))
 		MeasureStruct.OverWaveAlarmFlag = 1;
 	else
-		MeasureStruct.OverWaveAlarmFlag = 0;							
+		MeasureStruct.OverWaveAlarmFlag = 0;
+		
+		//温度告警脚采集								    
+	if(MeasureStruct.AnalogVal[Analog_TEMP] >= 85.0f) //温度告警
+		MeasureStruct.TempAlarmFlag = 1;
+	else
+		MeasureStruct.TempAlarmFlag = 0;
 }
 
 //采集功能tick(1ms调用一次)

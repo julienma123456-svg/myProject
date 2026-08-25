@@ -55,4 +55,5 @@ typedef struct
 // 函数声明
 unsigned char IsMasterCommFrame(unsigned char data1, unsigned char data2);
 void MasterCommService(unsigned char *pdta, unsigned char dataLen);
+void refresh_control_command(void);
 #endif // PROTOCOL_H

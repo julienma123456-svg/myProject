@@ -1,7 +1,10 @@
 #include "mastercomm.h"
 // CRC-8 Lookup Table
-
+#include "delay.h"
 static PA_Data_t s_packdata;
+extern unsigned int senddelayCnt;
+extern unsigned int sendLend;
+extern unsigned char tx_buf[64];
 static unsigned char crc8_table[256] = 
 	{
     0, 94, 188, 226, 97, 63, 221, 131, 194, 156, 126, 32, 163, 253, 31, 65,  
@@ -21,8 +24,6 @@ static unsigned char crc8_table[256] =
     233, 183, 85, 11, 136, 214, 52, 106, 43, 117, 151, 201, 74, 20, 246, 168,  
     116, 42, 200, 150, 21, 75, 169, 247, 182, 232, 10, 84, 215, 137, 107, 53  
 };
-
-unsigned char tx_buf[64];
 
 // CRC计算函数
 unsigned char calculate_crc(unsigned char* pdta, unsigned char length) 
@@ -175,7 +176,7 @@ static void update_packdata(PA_Data_t *pdta)
 // 控制命令处理
 static void handle_control_command(unsigned char* pdta, unsigned char length)
 {
-    char err = 0;
+  char err = 0;
 	unsigned char gear = 0;
 	unsigned char level = 0;
 	unsigned char len = 0;
@@ -207,8 +208,8 @@ static void handle_control_command(unsigned char* pdta, unsigned char length)
         // PrintfArray(pstring,strlen(pstring));
         return;
     }
-    gear = pdta[8];  // 第8字节 档位 (10W单位，0x00-0x0A)
-    level = pdta[7]; // 第9字节 级别 (0.1W单位，0x00-0x0F)
+    gear = pdta[7];  // 第8字节 档位 (10W单位，0x00-0x0A)
+    level = pdta[8]; // 第9字节 级别 (0.1W单位，0x00-0x0F)
     power = gear * 10.0 + level * 0.1;  // PA功率 = 档位*10W + 级别*0.1W
     u16power = (unsigned int)(power * 100.0 + 0.1f); // 转换为0.01W单位的整数
     // sprintf(pstring,"设置PA功率: 档位=%02X, 级别=%02X, 功率=%.1f W\r\n", gear, level, power);
@@ -231,9 +232,15 @@ static void handle_control_command(unsigned char* pdta, unsigned char length)
     //频率默认915MHZ 不处理
     //预留不处理
     memset(tx_buf, 0, sizeof(tx_buf));
+    // memset(&s_packdata, 0, sizeof(PA_Data_t));
     update_packdata(&s_packdata);
     len = PA_BuildDataFrame(tx_buf, &s_packdata);
-    Comm1SendData(tx_buf, len);
+    if(senddelayCnt == 0)
+    {
+        sendLend = len;
+        senddelayCnt = 2000;
+    }
+    // Comm1SendData(tx_buf, len);
 }
 
 // 查询命令处理
@@ -335,6 +342,14 @@ static void process_frame(unsigned char* received_data, unsigned char length)
         //PrintfArray(pstring,strlen(pstring));
     }
 }
+
+// 控制命令处理
+void refresh_control_command(void)
+{
+    update_packdata(&s_packdata);
+    PA_BuildDataFrame(tx_buf, &s_packdata);
+}
+
 
 unsigned char IsMasterCommFrame(unsigned char data1, unsigned char data2)
 {

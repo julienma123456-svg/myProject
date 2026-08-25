@@ -2,7 +2,6 @@
 #include "delay.h"
 static unsigned char OutPowerFreq = 90;
 static unsigned int tickCount = 0;
-
 static unsigned char GetInPowerAdjInx(void);
 //ADC通道映射表
 static unsigned char ADC_ChIndex[Analog_NUM] = 
@@ -236,8 +235,8 @@ float getReturnLoss(void)
 	#ifdef MOCK_DATA_FOR_TEST
 	// 模拟数据，测试用
 	MeasureStruct.AnalogVal[Analog_17A] = 12.35;
-	MeasureStruct.AnalogVal[Analog_InPower] = 102.5;
-	MeasureStruct.AnalogVal[Analog_RefPower] = 20.5;
+	MeasureStruct.AnalogVal[Analog_InPower] = 200;
+	MeasureStruct.AnalogVal[Analog_RefPower] = 0;
 	MeasureStruct.lossVal = pa_calc_vswr_fixed(MeasureStruct.AnalogVal[Analog_InPower],MeasureStruct.AnalogVal[Analog_RefPower]);
 	#endif
 	return MeasureStruct.lossVal;
@@ -324,10 +323,7 @@ static void MeasureAllVal(void)
 	// sprintf(pstring,"Analog_InPower = %.1f\t Analog_RefPower = %.1f\t lossVal = %.1f\t\r\n",MeasureStruct.AnalogVal[Analog_InPower],MeasureStruct.AnalogVal[Analog_RefPower],MeasureStruct.lossVal);
 	// PrintfArray(pstring,strlen(pstring));
 	
-	#ifdef MOCK_DATA_FOR_TEST
-    MeasureStruct.AnalogVal[Analog_InPower] = 102.5;
-	MeasureStruct.AnalogVal[Analog_RefPower] = 0.5;
-    #endif
+
 	// 源电压异常告警
 	if(MeasureStruct.AnalogVal[Analog_50V] < 25)
 		MeasureStruct.VolAlarmFlag = VOLT_LOW_ALM;

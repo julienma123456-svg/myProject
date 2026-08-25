@@ -21,6 +21,9 @@ void Timer0_Service(void);
 
 unsigned char recLen = 0;
 unsigned char xdata  recArray[256] = {0};
+unsigned char tx_buf[64];//为了mastercomm使用的缓冲区
+unsigned int senddelayCnt = 0;
+unsigned int sendLend = 0;
 
 static void DataDistributionComm1(void)
 {
@@ -89,6 +92,12 @@ void main(void)
 			Timer0_Service();
 			FeedWatchDog();		 //喂狗
 		}
+		if(senddelayCnt == 0 && sendLend > 0)
+		{
+			refresh_control_command();
+			Comm1SendData(tx_buf, sendLend);
+			sendLend = 0;
+		}
 	}
 }
 
@@ -120,5 +129,9 @@ void Timer0_Service (void)
 	{
 		GPIO_OutLow(enumLED);
 		count = 0;
+	}
+	if(senddelayCnt > 0)
+	{
+		senddelayCnt--;
 	}
 }
